@@ -310,7 +310,7 @@ export function createLevel8People(parent, opts = {}) {
     holder.rotation.y = spot.ry
     group.add(holder)
     addVehicleCollider(addCollider, spot.x, spot.z, spot.ry, 'taxi')
-    return { mesh: holder, x: spot.x, z: spot.z, honkAt: 6 + Math.random() * 10 }
+    return { mesh: holder, x: spot.x, z: spot.z }
   })
 
   const parked = PARKED_CARS.map((spot) => {
@@ -338,7 +338,7 @@ export function createLevel8People(parent, opts = {}) {
     const pts = path.pts.map(([x, z]) => new THREE.Vector3(x, 0, z))
     holder.position.copy(pts[0])
     group.add(holder)
-    return { mesh: holder, pts, seg: 0, t: Math.random(), speed: path.speed, honkAt: 8 + Math.random() * 10 }
+    return { mesh: holder, pts, seg: 0, t: Math.random(), speed: path.speed }
   })
 
   let cancelled = false
@@ -464,9 +464,7 @@ export function createLevel8People(parent, opts = {}) {
       for (const s of standing) s.barkAt -= dt
       for (const taxi of moving) {
         stepPath(taxi, dt * pace)
-        taxi.honkAt -= dt
       }
-      for (const taxi of taxis) taxi.honkAt -= dt
     },
     pollBark(px, pz, storm = false) {
       for (const w of [...walkers, ...standing]) {
@@ -497,14 +495,6 @@ export function createLevel8People(parent, opts = {}) {
         if (d < radius) {
           return { x: taxi.mesh.position.x, z: taxi.mesh.position.z }
         }
-      }
-      return null
-    },
-    pollHonk() {
-      for (const taxi of [...taxis, ...moving]) {
-        if (taxi.honkAt > 0) continue
-        taxi.honkAt = 9 + Math.random() * 14
-        return { x: taxi.mesh.position.x, z: taxi.mesh.position.z }
       }
       return null
     },

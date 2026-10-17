@@ -118,6 +118,19 @@ function WalletBadge({ balance, store = false }) {
   )
 }
 
+function HomeTile({ icon, label, onClick, primary = false }) {
+  return (
+    <button
+      type="button"
+      className={'start-menu__tile' + (primary ? ' start-menu__tile--primary' : '')}
+      onClick={onClick}
+    >
+      <MenuIcon name={icon} />
+      <span className="start-menu__tile-label">{label}</span>
+    </button>
+  )
+}
+
 export function StartMenu({
   menuScreen,
   onBeginGame,
@@ -305,77 +318,35 @@ export function StartMenu({
                 </>
               ) : null}
               <WalletBadge balance={walletBalance} />
-              <div className="start-menu__group">
-                <p className="start-menu__group-label">Play</p>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn start-menu__pixel-btn--primary"
-                  onClick={onBeginGame}
-                >
-                  New Game
-                </button>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
-                  onClick={() => onNavigate('levels')}
-                >
-                  Levels
-                </button>
-              </div>
-              <div className="start-menu__group">
-                <p className="start-menu__group-label">Progress</p>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
+              <div className="start-menu__home-grid">
+                <HomeTile icon="play" label="New Game" onClick={onBeginGame} primary />
+                <HomeTile
+                  icon="user"
+                  label={user ? 'Account' : 'Sign In'}
                   onClick={() => onNavigate('account')}
-                >
-                  {user ? 'Account' : 'Sign in'}
-                </button>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
+                />
+                <HomeTile
+                  icon="scores"
+                  label="Scoreboards"
                   onClick={() => onNavigate('scoreboards')}
-                >
-                  Scoreboards
-                </button>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
-                  onClick={() => onNavigate('store')}
-                >
-                  Store
-                </button>
-              </div>
-              <div className="start-menu__group">
-                <p className="start-menu__group-label">Help</p>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
-                  onClick={() => onNavigate('about')}
-                >
-                  About the game
-                </button>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
+                />
+                <HomeTile
+                  icon="help"
+                  label="How to Play"
                   onClick={() => onNavigate('instructions')}
-                >
-                  How to play
-                </button>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn"
+                />
+                <HomeTile
+                  icon="options"
+                  label="Options"
                   onClick={() => onNavigate('options')}
-                >
-                  Options
-                </button>
-                <button
-                  type="button"
-                  className="start-menu__pixel-btn start-menu__pixel-btn--quiet"
-                  onClick={onExit}
-                >
-                  Quit
-                </button>
+                />
+                <HomeTile icon="store" label="Store" onClick={() => onNavigate('store')} />
+                <HomeTile
+                  icon="levels"
+                  label="Levels"
+                  onClick={() => onNavigate('levels')}
+                />
+                <HomeTile icon="quit" label="Quit" onClick={onExit} />
               </div>
             </nav>
           </>
@@ -538,46 +509,6 @@ export function StartMenu({
           </div>
         )}
         <ScoreboardsPanel menuScreen={menuScreen} onNavigate={onNavigate} />
-        {menuScreen === 'about' && (
-          <div className="start-menu__sub" aria-label="About the game">
-            <h2 className="start-menu__sub-title">About the game</h2>
-            <div className="start-menu__sub-body">
-              <p className="start-menu__about-kicker">The reason</p>
-              <p>
-                People remember a street they had to cross. Mzansi Escape puts
-                real South African risks inside play, so the lesson lands while
-                you are moving, not in a notice you skip.
-              </p>
-              <p className="start-menu__about-kicker">The problem</p>
-              <p>
-                Minibus taxis, unsafe stations, Day Zero, loadshedding, harm on
-                the Cape Flats, and floods in Soweto are everyday dangers.
-                Advice exists. It rarely meets you at the moment you choose.
-              </p>
-              <p className="start-menu__about-kicker">The solution</p>
-              <p>
-                You play the route. Each level is a real place and one hazard
-                you cannot punch through. Finish the task — dodge, pay the
-                fare, restore the water, stay hidden, sandbag the stoep — and
-                the next step appears when it matters, including who to call.
-              </p>
-              <p className="start-menu__about-kicker">The impact</p>
-              <p>
-                You leave with the street still in mind and a practical
-                response: high ground in a flood, fare before the bus, care
-                after harm, and the habit of looking twice. The score is your
-                time. The point is the choice you would make outside the game.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="start-menu__pixel-btn"
-              onClick={() => onNavigate('main')}
-            >
-              Back
-            </button>
-          </div>
-        )}
         {menuScreen === 'instructions' && (
           <div className="start-menu__sub">
             <h2 className="start-menu__sub-title">How to play</h2>

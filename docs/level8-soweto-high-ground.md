@@ -66,8 +66,8 @@ Map is compact: **160 (x) by 220 (z)**. Walk from **+z spawn** toward **-z home*
 export const LEVEL8_ANCHORS = {
   spawn:   { x: 0,  z: 96 },   // Vilakazi-style strip
   clinic:  { x: 48, z: 40 },   // Neighbour 1
-  school:  { x: -40, z: -8 },  // Neighbour 2
-  spaza:   { x: 28, z: -52 },  // Neighbour 3
+  school:  { x: -40, z: -26 }, // Neighbour 2, beside School Road
+  spaza:   { x: 28, z: -66 },  // Neighbour 3, beside Spaza Lane
   crate:   { x: 52, z: -40 },  // Dry-side crate for the spaza beat
   home:    { x: 0,  z: -92 },  // Family house / win
 }
@@ -75,8 +75,8 @@ export const LEVEL8_ANCHORS = {
 export const LEVEL8_CHECKPOINTS = [
   { id: 'start',  x: 0,  z: 96 },
   { id: 'clinic', x: 48, z: 40 },
-  { id: 'school', x: -40, z: -8 },
-  { id: 'spaza',  x: 28, z: -52 },
+  { id: 'school', x: -40, z: -26 },
+  { id: 'spaza',  x: 28,  z: -66 },
 ]
 
 export const LEVEL8_CHECKPOINT_RADIUS = 8

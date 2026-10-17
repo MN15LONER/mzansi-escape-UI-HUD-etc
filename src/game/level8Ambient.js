@@ -1,6 +1,4 @@
-// level8Ambient.js — Rain bed, crowd murmur, kids, voices, distant taxi honks.
-
-import { playRandomHonk } from './gameAudio.js'
+// level8Ambient.js — Rain bed, crowd murmur, kids, and voices.
 
 const LEVEL8_AUDIO = '/game audio/level8'
 
@@ -56,7 +54,6 @@ export function createLevel8Ambient() {
   let crowdFile = null
   let nextVoice = 2.5
   let nextKid = 4
-  let nextHonk = 5
   let thunderCool = 0
 
   const ensure = () => {
@@ -170,6 +167,7 @@ export function createLevel8Ambient() {
     boom.start(t + 0.12)
     boom.stop(t + 1.5)
 
+    tryPlayFile(`${LEVEL8_AUDIO}/lightning.mp3`, heavy ? 0.72 : 0.45)
     tryPlayFile(`${LEVEL8_AUDIO}/thunder.mp3`, heavy ? 0.78 : 0.4)
   }
 
@@ -231,7 +229,7 @@ export function createLevel8Ambient() {
     },
     /**
      * @param {number} dt
-     * @param {{ rainHeavy?: boolean, peopleNear?: number, soak?: boolean, honk?: boolean, barkKind?: 'kid' | 'adult' | null, thunder?: boolean }} state
+     * @param {{ rainHeavy?: boolean, peopleNear?: number, soak?: boolean, barkKind?: 'kid' | 'adult' | null, thunder?: boolean }} state
      */
     update(dt, state) {
       if (!active) return
@@ -249,13 +247,11 @@ export function createLevel8Ambient() {
         crowdGain.gain.value = 0.05 + near * (state.rainHeavy ? 0.14 : 0.08)
       }
       if (state.soak) playSplash()
-      if (state.honk) playRandomHonk()
       if (state.thunder) playThunder(true)
       if (state.barkKind) playVoice(state.barkKind, state.rainHeavy ? 1 : 0.85)
 
       nextVoice -= dt
       nextKid -= dt
-      nextHonk -= dt
       if (nextVoice <= 0) {
         nextVoice = state.rainHeavy ? 2.2 + Math.random() * 3.2 : 5 + Math.random() * 7
         if ((state.peopleNear ?? 99) < (state.rainHeavy ? 28 : 16)) playVoice('adult', 0.7)
@@ -263,10 +259,6 @@ export function createLevel8Ambient() {
       if (nextKid <= 0) {
         nextKid = state.rainHeavy ? 3 + Math.random() * 4 : 7 + Math.random() * 8
         if ((state.peopleNear ?? 99) < (state.rainHeavy ? 30 : 20)) playVoice('kid', 0.65)
-      }
-      if (nextHonk <= 0) {
-        nextHonk = 8 + Math.random() * 12
-        playRandomHonk()
       }
       void started
     },

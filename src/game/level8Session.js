@@ -588,6 +588,8 @@ export function createLevel8Session(deps) {
       stormLocked = true
       city.setRainHeavy(true)
       people.setPace(1.28)
+      lightningT = 0.3
+      ambient.thunder()
       armCheckpoint('school')
     } else if (result.kind === 'spaza') {
       city.setWaterStage(3)
@@ -817,11 +819,9 @@ export function createLevel8Session(deps) {
     }
 
     const bark = people.pollBark(pos.x, pos.z, stormOn)
-    const honk = people.pollHonk()
     ambient.update(dt, {
       rainHeavy: stormOn,
       peopleNear: people.nearestDistance(pos.x, pos.z),
-      honk: Boolean(honk),
       barkKind: bark?.kind ?? null,
       thunder: thunderNow,
     })

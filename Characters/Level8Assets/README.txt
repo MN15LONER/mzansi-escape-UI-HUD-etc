@@ -20,4 +20,4 @@ House1–6.glb, Clinic.glb, School.glb, Spaza.glb, Home.glb, Vendor1.glb, Vendor
 
 ## Ambient audio
 
-`collab/public/game audio/level8/` — rain.mp3, crowd.mp3, kids-laugh.mp3, voices.mp3, splash.mp3
+`collab/public/game audio/level8/` — rain.mp3, crowd.mp3, kids-laugh.mp3, voices.mp3, splash.mp3, lightning.mp3

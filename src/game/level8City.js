@@ -18,8 +18,8 @@ export const LEVEL8_WORLD_BOUNDS = {
 export const LEVEL8_ANCHORS = {
   spawn: { x: 0, z: 96 },
   clinic: { x: 48, z: 40 },
-  school: { x: -40, z: -8 },
-  spaza: { x: 28, z: -52 },
+  school: { x: -40, z: -26 },
+  spaza: { x: 28, z: -66 },
   crate: { x: 52, z: -40 },
   home: { x: -34, z: -96 },
 }
@@ -36,8 +36,8 @@ export const LEVEL8_SURGE_S = 72
 export const LEVEL8_CHECKPOINTS = [
   { id: 'start', x: 0, z: 96 },
   { id: 'clinic', x: 48, z: 40 },
-  { id: 'school', x: -40, z: -8 },
-  { id: 'spaza', x: 28, z: -52 },
+  { id: 'school', x: LEVEL8_ANCHORS.school.x, z: LEVEL8_ANCHORS.school.z },
+  { id: 'spaza', x: LEVEL8_ANCHORS.spaza.x, z: LEVEL8_ANCHORS.spaza.z },
 ]
 
 /** Corner Shell garages — not every block, only landmark T-junctions. */
