@@ -34,6 +34,7 @@ import {
   getLevelConfig,
   getNextLevelNumber,
   isLevelPlayable,
+  isLevelPlayableOnDevice,
 } from './game/levels.js'
 import { sanitizeStoredBest } from './game/scores.js'
 import {
@@ -332,6 +333,7 @@ export function RoadScene() {
   const startGameplay = useCallback(
     (levelNumber) => {
       if (!isLevelPlayable(levelNumber)) return
+      if (!isLevelPlayableOnDevice(levelNumber)) return
       if (levelNumber === 1 && (hud.loading || hud.loadError)) return
       setMenuSelectedLevel(levelNumber)
       menuSelectedLevelRef.current = levelNumber
@@ -383,6 +385,7 @@ export function RoadScene() {
   const beginGameAtLevel = useCallback(
     (levelNumber) => {
       if (!isLevelPlayable(levelNumber)) return
+      if (!isLevelPlayableOnDevice(levelNumber)) return
       if (levelNumber === 1 && (hud.loading || hud.loadError)) return
       if (playStartedRef.current) return
       startGameplay(levelNumber)
@@ -493,7 +496,10 @@ export function RoadScene() {
   }, [closeLevel6Warning])
 
   const nextLevelFromWin = useCallback(() => {
-    const next = getNextLevelNumber(currentLevelRef.current)
+    let next = getNextLevelNumber(currentLevelRef.current)
+    while (next !== null && !isLevelPlayableOnDevice(next)) {
+      next = getNextLevelNumber(next)
+    }
     if (next === null) return
     currentLevelRef.current = next
     setMenuSelectedLevel(next)

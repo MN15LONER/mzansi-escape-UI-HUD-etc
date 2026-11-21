@@ -1,5 +1,6 @@
 // levels.js — Per-level player and hazard configuration.
 
+import { IS_COARSE_POINTER } from './deviceProfile.js'
 import { createLevel1TaxiAssetLoader } from './level1TaxiHazards.js'
 import { createLevel2ObstacleAssetLoader } from './level2ObstacleHazards.js'
 
@@ -221,6 +222,21 @@ const LEVELS = new Map([
 /** @param {number} levelNumber */
 export function isLevelPlayable(levelNumber) {
   return PLAYABLE_LEVELS.has(levelNumber)
+}
+
+/** Levels 3–5 need pointer lock. Phones cannot start them. */
+const DESKTOP_ONLY_ON_COARSE = new Set([3, 4, 5])
+
+export const DESKTOP_ONLY_LEVEL_MESSAGE =
+  'Levels 3-5 are desktop-only for now. Try this level on a computer.'
+
+/**
+ * @param {number} levelNumber
+ * False only for levels 3–5 on a coarse pointer. Otherwise the same as isLevelPlayable.
+ */
+export function isLevelPlayableOnDevice(levelNumber) {
+  if (IS_COARSE_POINTER && DESKTOP_ONLY_ON_COARSE.has(levelNumber)) return false
+  return isLevelPlayable(levelNumber)
 }
 
 /** @param {number} levelNumber */

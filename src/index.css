@@ -47,9 +47,15 @@
 
 }
 
+html {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
 body {
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 #root {

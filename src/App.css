@@ -409,6 +409,36 @@
     linear-gradient(to top, #10131d 0 64%, transparent 64%) 78% 100% / 20% 80% no-repeat;
 }
 
+.start-menu__level-badge {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  left: 10px;
+  margin: 0;
+  padding: 6px 8px;
+  color: #1a1408;
+  background: #f5d875;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', cursive, monospace;
+  font-size: 0.42rem;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.start-menu__device-notice {
+  margin: 12px 0 0;
+  color: #f5d875;
+  font-family: 'Press Start 2P', cursive, monospace;
+  font-size: clamp(0.38rem, 1.2vw, 0.48rem);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.start-menu__tile:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .start-menu__level-card-caption {
   position: absolute;
   inset: auto 0 0;

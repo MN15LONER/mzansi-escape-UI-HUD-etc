@@ -10,7 +10,10 @@ import {
 import { CHARACTERS, KENNEY_RUN_FBX } from '../game/characterAssets.js'
 import { LEVEL2_PLAYER_CARS } from '../game/level2CarAssets.js'
 import {
+  DESKTOP_ONLY_LEVEL_MESSAGE,
   getLevelConfig,
+  isLevelPlayable,
+  isLevelPlayableOnDevice,
   PLAYABLE_LEVEL_NUMBERS,
 } from '../game/levels.js'
 import {
@@ -134,12 +137,13 @@ function WalletBadge({ balance, store = false }) {
   )
 }
 
-function HomeTile({ icon, label, onClick, primary = false }) {
+function HomeTile({ icon, label, onClick, primary = false, disabled = false }) {
   return (
     <button
       type="button"
       className={'start-menu__tile' + (primary ? ' start-menu__tile--primary' : '')}
       onClick={onClick}
+      disabled={disabled}
     >
       <MenuIcon name={icon} />
       <span className="start-menu__tile-label">{label}</span>
@@ -355,6 +359,8 @@ export function StartMenu({
   const selectedLevelDisplayNumber = selectedLevelIndex + 1
   const selectedLevelConfig = getLevelConfig(selectedLevelNumber)
   const selectedLevelCover = LEVEL_COVER_IMAGES[selectedLevelNumber]
+  const selectedLevelDesktopOnly =
+    isLevelPlayable(selectedLevelNumber) && !isLevelPlayableOnDevice(selectedLevelNumber)
   const primaryGamepad = getPreferredGamepad(connectedGamepads)
 
   return (
@@ -401,7 +407,13 @@ export function StartMenu({
               ) : null}
               <WalletBadge balance={walletBalance} />
               <div className="start-menu__home-grid">
-                <HomeTile icon="play" label="New Game" onClick={onBeginGame} primary />
+                <HomeTile
+                  icon="play"
+                  label="New Game"
+                  onClick={onBeginGame}
+                  primary
+                  disabled={selectedLevelDesktopOnly}
+                />
                 <HomeTile
                   icon="user"
                   label={user ? 'Account' : 'Sign In'}
@@ -430,6 +442,11 @@ export function StartMenu({
                 />
                 <HomeTile icon="quit" label="Quit" onClick={onExit} />
               </div>
+              {selectedLevelDesktopOnly ? (
+                <p className="start-menu__device-notice" role="status">
+                  {DESKTOP_ONLY_LEVEL_MESSAGE}
+                </p>
+              ) : null}
             </nav>
           </>
         )}
@@ -685,6 +702,9 @@ export function StartMenu({
                   aria-live="polite"
                   aria-label={`Level ${selectedLevelDisplayNumber}: ${selectedLevelConfig.label}`}
                 >
+                  {selectedLevelDesktopOnly ? (
+                    <p className="start-menu__level-badge">Desktop only</p>
+                  ) : null}
                   {selectedLevelCover ? (
                     <img
                       className="start-menu__level-cover"
@@ -721,6 +741,11 @@ export function StartMenu({
               <p className="start-menu__level-position" aria-live="polite">
                 {selectedLevelDisplayNumber} / {PLAYABLE_LEVEL_NUMBERS.length}
               </p>
+              {selectedLevelDesktopOnly ? (
+                <p className="start-menu__device-notice" role="status">
+                  {DESKTOP_ONLY_LEVEL_MESSAGE}
+                </p>
+              ) : null}
             </div>
             <button
               type="button"
