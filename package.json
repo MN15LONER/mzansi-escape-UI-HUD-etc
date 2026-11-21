@@ -3,12 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "release": "npm run build && node scripts/create-release.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
+    "electron:dev": "npm run build && electron .",
+    "electron:build": "npm run build && electron-builder --win nsis",
     "optimize:buildings": "node scripts/optimize-glbs.mjs --ratio=0.12 --error=0.01 --tex=512 --join public BarberShop.glb BrickWall.glb CellPhoneRepairShop.glb GenericBuilding.glb InternetCafe.glb MuthiShop.glb SpazaShop.glb TuckShop.glb SowetoTower1.glb SowetoTower2.glb"
   },
   "dependencies": {
@@ -28,8 +31,33 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
     "globals": "^17.5.0",
     "sharp": "^0.34.5",
     "vite": "^8.0.9"
+  },
+  "build": {
+    "appId": "com.mzansiescape.game",
+    "productName": "Mzansi Escape",
+    "directories": {
+      "output": "electron-dist"
+    },
+    "files": [
+      "electron/**"
+    ],
+    "extraResources": [
+      {
+        "from": "dist",
+        "to": "dist"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
