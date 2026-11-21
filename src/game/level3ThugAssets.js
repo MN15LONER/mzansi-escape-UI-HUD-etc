@@ -3,6 +3,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js'
 import {
   findFirstSkinnedMesh,
@@ -14,9 +15,6 @@ import {
 } from '../mixamoAnimation.js'
 import { prepareThugModel } from './modelPrep.js'
 import { disposeObject3D } from './threeDispose.js'
-
-const DRACO_DECODER =
-  'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
 
 const JAB_URL = '/media/thugs/JabCross.glb'
 const ATTACK_FADE = 0.1
@@ -40,7 +38,7 @@ export const LEVEL3_THUG_CHARACTERS = [
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath(DRACO_DECODER)
+dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
 gltfLoader.setDRACOLoader(dracoLoader)
 
 /**

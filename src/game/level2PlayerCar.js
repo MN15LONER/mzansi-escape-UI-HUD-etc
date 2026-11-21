@@ -4,9 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { clonePlayerCarInstance, preparePlayerCarModel } from './modelPrep.js'
 import { disposeObject3D } from './threeDispose.js'
-
-const DRACO_DECODER =
-  'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 
 /**
  * @param {string} modelUrl
@@ -19,7 +17,7 @@ export function createLevel2PlayerCarAssetLoader(modelUrl, handlers = {}) {
   let loadError = false
   const loader = new GLTFLoader()
   const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath(DRACO_DECODER)
+  dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
   loader.setDRACOLoader(dracoLoader)
 
   loader.load(

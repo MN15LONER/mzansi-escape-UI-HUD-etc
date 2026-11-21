@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { DRACO_DECODER_PATH } from './game/dracoPath.js'
 
 const BUILDING_URLS = [
   '/BarberShop.glb',
@@ -15,7 +16,7 @@ const BUILDING_URLS = [
 
 const loader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/')
+dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
 loader.setDRACOLoader(dracoLoader)
 const TARGET_SIZE = new THREE.Vector3(6, 9, 3)
 

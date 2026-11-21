@@ -3,6 +3,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 import {
   areBuildingsReady,
   cloneBuildingTemplate,
@@ -53,7 +54,7 @@ const OPTIONAL_LANDMARKS = [
 function makeLoader() {
   const loader = new GLTFLoader()
   const draco = new DRACOLoader()
-  draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/')
+  draco.setDecoderPath(DRACO_DECODER_PATH)
   loader.setDRACOLoader(draco)
   return loader
 }

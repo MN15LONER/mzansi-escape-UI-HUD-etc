@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js'
 import {
   findFirstSkinnedMesh,
@@ -266,9 +267,7 @@ export function useRoadSceneEngine({
     scene.add(sowetoTowers)
     const towerLoader = new GLTFLoader()
     const towerDracoLoader = new DRACOLoader()
-    towerDracoLoader.setDecoderPath(
-      'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
-    )
+    towerDracoLoader.setDecoderPath(DRACO_DECODER_PATH)
     towerLoader.setDRACOLoader(towerDracoLoader)
     const towerDefs = [
       { url: '/SowetoTower1.glb', x: -44 },
@@ -802,9 +801,7 @@ export function useRoadSceneEngine({
 
     const loader = new GLTFLoader()
     const playerDracoLoader = new DRACOLoader()
-    playerDracoLoader.setDecoderPath(
-      'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
-    )
+    playerDracoLoader.setDecoderPath(DRACO_DECODER_PATH)
     loader.setDRACOLoader(playerDracoLoader)
     const fbxLoader = new FBXLoader()
     /** @type {Map<string, THREE.AnimationClip | null>} */

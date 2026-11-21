@@ -4,8 +4,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { disposeObject3D } from './threeDispose.js'
-
-const DRACO_DECODER = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 
 // Must stay a literal `new URL(..., import.meta.url)` so Vite bundles the GLB.
 export const POWER_STATION_MODEL = new URL(
@@ -18,7 +17,7 @@ export const POWER_STATION_TARGET_SIZE = 16
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath(DRACO_DECODER)
+dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
 gltfLoader.setDRACOLoader(dracoLoader)
 
 /** @type {THREE.Object3D | null} */

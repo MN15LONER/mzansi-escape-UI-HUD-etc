@@ -4,9 +4,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { disposeObject3D } from './threeDispose.js'
-
-const DRACO_DECODER =
-  'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 
 export const PARK_STATION_MODEL = new URL(
   '../../Characters/Level3Assets/ParkStation.glb',
@@ -36,7 +34,7 @@ export function distanceToFootprint(px, pz, cx, cz, hw, hd) {
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath(DRACO_DECODER)
+dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
 gltfLoader.setDRACOLoader(dracoLoader)
 
 /** @type {import('three').Object3D | null} */

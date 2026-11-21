@@ -3,6 +3,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js'
 import { clone as skeletonClone } from 'three/addons/utils/SkeletonUtils.js'
 import { CHARACTERS, KENNEY_RUN_FBX } from './characterAssets.js'
@@ -14,8 +15,6 @@ import { loadLevel2HazardCarTemplate } from './level2HazardCarCache.js'
 import { cloneObstacleInstance } from './modelPrep.js'
 import { pickRunClip } from '../mixamoAnimation.js'
 import { disposeObject3D } from './threeDispose.js'
-
-const DRACO = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
 
 function makePerson(kind) {
   const g = new THREE.Group()
@@ -190,7 +189,7 @@ export function createCityAmbientLife(parent, opts = {}) {
   const textureLoader = new THREE.TextureLoader()
   const gltfLoader = new GLTFLoader()
   const draco = new DRACOLoader()
-  draco.setDecoderPath(DRACO)
+  draco.setDecoderPath(DRACO_DECODER_PATH)
   gltfLoader.setDRACOLoader(draco)
   const fbxLoader = new FBXLoader()
 

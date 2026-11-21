@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { LEVEL4_ANCHORS } from './level4City.js'
 import { playIncorrectBuzzer, playSequenceTone } from './gameAudio.js'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 
 export const VALVE_REACH = 14
 export const HANDLE_COUNT = 4
@@ -16,8 +17,6 @@ const COLORS = [0xc62828, 0xf9a825, 0x1565c0, 0x2e7d32]
 const VALVE_XS = [-6, -2, 2, 6]
 const VALVE_MODEL_HEIGHT = 2.2
 const VALVE_PICK_Y = 1.7
-const DRACO_DECODER = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
-
 // Must stay a literal `new URL(..., import.meta.url)` so Vite bundles the GLB.
 const VALVE_MODEL_URL = new URL(
   '../../Characters/Level4Assets/newlandsValves3DModel.glb',
@@ -26,7 +25,7 @@ const VALVE_MODEL_URL = new URL(
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath(DRACO_DECODER)
+dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
 gltfLoader.setDRACOLoader(dracoLoader)
 
 /** @type {THREE.Object3D | null} */

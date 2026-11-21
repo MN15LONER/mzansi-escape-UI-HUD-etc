@@ -3,6 +3,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js'
 import { prepareThugModel } from './modelPrep.js'
 import { disposeObject3D } from './threeDispose.js'
@@ -51,7 +52,6 @@ const SILHOUETTE_COLOR = 0x222230
 const ROMERO_URL = '/media/thugs/Romero.glb'
 /** Same locomotion clip the Level 3 thugs share (Phara's run, retargeted onto Romero). */
 const THUG_LOCOMOTION_URL = '/media/thugs/Phara.glb'
-const DRACO_DECODER = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
 
 /**
  * Six handcrafted loops spread across the three maze zones (see LEVEL6_WALLS).
@@ -149,7 +149,7 @@ const silhouetteMat = new THREE.MeshStandardMaterial({
 function loadGltf(url) {
   const gltfLoader = new GLTFLoader()
   const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath(DRACO_DECODER)
+  dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
   gltfLoader.setDRACOLoader(dracoLoader)
   return new Promise((resolve, reject) => {
     gltfLoader.load(

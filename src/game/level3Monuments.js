@@ -14,12 +14,11 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { disposeObject3D } from './threeDispose.js'
-
-const DRACO_DECODER = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/'
+import { DRACO_DECODER_PATH } from './dracoPath.js'
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath(DRACO_DECODER)
+dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
 gltfLoader.setDRACOLoader(dracoLoader)
 
 // These must stay as literal `new URL(..., import.meta.url)` expressions:
