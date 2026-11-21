@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { DRACO_DECODER_PATH } from './game/dracoPath.js'
+import { IS_COARSE_POINTER } from './game/deviceProfile.js'
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js'
 import {
   findFirstSkinnedMesh,
@@ -124,7 +125,7 @@ export function CharacterPreview({
     camera.lookAt(0, 0.45, 0)
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, IS_COARSE_POINTER ? 1 : 2))
 
     const setSize = () => {
       const w = Math.max(1, wrap.clientWidth)

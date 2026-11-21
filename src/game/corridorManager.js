@@ -11,6 +11,7 @@ import {
 } from './gameConstants.js'
 import { CORRIDOR_BILLBOARD_ADS, createBillboard } from './level3Billboards.js'
 import { disposeObject3D } from './threeDispose.js'
+import { IS_COARSE_POINTER } from './deviceProfile.js'
 
 function createCorridorSegment(side, materials, laneWidth, theme, billboardAd) {
   const segment = new THREE.Group()
@@ -142,7 +143,7 @@ export function createCorridorManager(scene, materials, theme = 'soweto') {
       if (from.userData.shadowsEnabled !== shadowsOn) {
         from.userData.shadowsEnabled = shadowsOn
         for (const mesh of from.userData.shadowMeshes) {
-          mesh.castShadow = shadowsOn
+          mesh.castShadow = IS_COARSE_POINTER ? false : shadowsOn
         }
       }
     }

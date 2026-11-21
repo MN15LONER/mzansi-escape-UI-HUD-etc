@@ -21,6 +21,7 @@ import { LoadingOverlay } from './components/LoadingOverlay.jsx'
 import { NewRecordToast } from './components/NewRecordToast.jsx'
 import { PauseMenu } from './components/PauseMenu.jsx'
 import { PauseToolbar } from './components/PauseToolbar.jsx'
+import { TouchControls } from './components/TouchControls.jsx'
 import { RoadSceneCanvas } from './components/RoadSceneCanvas.jsx'
 import { StartMenu } from './components/StartMenu.jsx'
 import { WalletHud } from './components/WalletHud.jsx'
@@ -691,7 +692,15 @@ export function RoadScene() {
         !hud.levelComplete &&
         !paused &&
         !levelBriefingOpen &&
-        !level6WarningOpen && <PauseToolbar onPause={openPauseMenu} />}
+        !level6WarningOpen && (
+          <>
+            <PauseToolbar onPause={openPauseMenu} />
+            {(currentLevel === 1 ||
+              currentLevel === 2 ||
+              currentLevel === 6 ||
+              currentLevel === 8) && <TouchControls level={currentLevel} />}
+          </>
+        )}
       {playStarted &&
         paused &&
         !levelBriefingOpen &&

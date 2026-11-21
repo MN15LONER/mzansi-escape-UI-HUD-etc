@@ -87,6 +87,8 @@ import { createCorridorManager } from './corridorManager.js'
 import { ensureBuildingsLoaded } from '../BuildingFactory.js'
 import { setNextLevelSignText } from './roadSign.js'
 import { getLevelConfig } from './levels.js'
+import { IS_COARSE_POINTER } from './deviceProfile.js'
+import { isTouchControlEvent } from './touchInput.js'
 import { carMotionOffset, createPlayerCar } from './playerCar.js'
 import {
   createLevel2CarInstance,
@@ -173,10 +175,13 @@ export function useRoadSceneEngine({
     )
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.shadowMap.enabled = true
-    renderer.shadowMap.type = LOW_SPEC_RENDERING
-      ? THREE.PCFShadowMap
-      : THREE.PCFSoftShadowMap
+    // Open-world levels share this renderer. Phones skip the shadow pass.
+    renderer.shadowMap.enabled = !IS_COARSE_POINTER
+    if (!IS_COARSE_POINTER) {
+      renderer.shadowMap.type = LOW_SPEC_RENDERING
+        ? THREE.PCFShadowMap
+        : THREE.PCFSoftShadowMap
+    }
     container.appendChild(renderer.domElement)
     container.tabIndex = 0
     container.focus({ preventScroll: true })
@@ -1562,6 +1567,12 @@ export function useRoadSceneEngine({
         if (state.y <= 0.01 && state.rollT <= 0) {
           state.vy = JUMP_VELOCITY
         }
+      } else if (e.code === 'KeyC' && isTouchControlEvent(e)) {
+        // Roll is swipe-down only. The on-screen Roll button sends KeyC;
+        // a physical C key and the gamepad do not take this branch.
+        e.preventDefault()
+        if (!level.rollEnabled) return
+        if (state.y <= 0.01 && state.rollT <= 0) state.rollT = ROLL_DURATION
       }
     }
 
@@ -1578,12 +1589,24 @@ export function useRoadSceneEngine({
 
     let touchX = 0
     let touchY = 0
+    let swipeFromControls = false
+    const touchOnControls = (touch) =>
+      touch?.target instanceof Element && Boolean(touch.target.closest('[data-touch-controls]'))
     const onTouchStart = (e) => {
       if (e.touches.length !== 1) return
+      if (touchOnControls(e.touches[0])) {
+        swipeFromControls = true
+        return
+      }
+      swipeFromControls = false
       touchX = e.touches[0].clientX
       touchY = e.touches[0].clientY
     }
     const onTouchEnd = (e) => {
+      if (swipeFromControls || touchOnControls(e.changedTouches[0])) {
+        swipeFromControls = false
+        return
+      }
       if (!isGameplayActive()) return
       if (e.changedTouches.length !== 1) return
       const dx = e.changedTouches[0].clientX - touchX

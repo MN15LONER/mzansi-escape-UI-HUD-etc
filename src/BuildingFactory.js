@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { DRACO_DECODER_PATH } from './game/dracoPath.js'
+import { IS_COARSE_POINTER } from './game/deviceProfile.js'
 
 const BUILDING_URLS = [
   '/BarberShop.glb',
@@ -43,7 +44,7 @@ function prepareBuildingTemplate(root) {
   normalized.scale.setScalar(scale)
   normalized.traverse((obj) => {
     if (obj.isMesh) {
-      obj.castShadow = true
+      if (!IS_COARSE_POINTER) obj.castShadow = true
       obj.receiveShadow = true
     }
   })
