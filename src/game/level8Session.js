@@ -84,6 +84,8 @@ export const LEVEL8_NAVIGATOR = {
 
 const CAM_OFFSET = new THREE.Vector3(0, 5.8, 11)
 const CAM_TARGET_OFFSET = new THREE.Vector3(0, 1.7, 0)
+const CAM_Y_AXIS = new THREE.Vector3(0, 1, 0)
+const CAM_X_AXIS = new THREE.Vector3(1, 0, 0)
 const CAM_LERP = 0.12
 const GRACE_AFTER_RESPAWN = 1.4
 const CHECKPOINT_FLASH_MS = 2200
@@ -240,6 +242,8 @@ export function createLevel8Session(deps) {
   let checkpointFlashAt = 0
   let tipsCollected = 0
   let snapCamera = true
+  let cameraYaw = 0
+  let cameraPitch = 0
   let sprintingNow = false
   let rainLeft = 0
   let lightningT = 0
@@ -640,6 +644,8 @@ export function createLevel8Session(deps) {
     lightningT = 0
     sprintingNow = false
     snapCamera = true
+    cameraYaw = 0
+    cameraPitch = 0
     timedPrompt = { text: '', until: 0 }
     navOverride = { text: '', until: 0 }
     activated.clear()
@@ -926,7 +932,11 @@ export function createLevel8Session(deps) {
       cam.fov = step.fov
       cam.updateProjectionMatrix()
     }
-    camOffset.copy(CAM_OFFSET).multiplyScalar(step.scale)
+    camOffset
+      .copy(CAM_OFFSET)
+      .multiplyScalar(step.scale)
+      .applyAxisAngle(CAM_Y_AXIS, cameraYaw)
+      .applyAxisAngle(CAM_X_AXIS, cameraPitch)
     camTarget.set(pos.x, 0, pos.z).add(camOffset)
     if (snapCamera || appliedViewIndex !== viewIndex) {
       cam.position.copy(camTarget)
@@ -937,6 +947,13 @@ export function createLevel8Session(deps) {
     }
     camLook.set(pos.x, 0, pos.z).add(CAM_TARGET_OFFSET)
     cam.lookAt(camLook)
+  }
+
+  const handleCameraInput = (horizontal, vertical, dt) => {
+    if (!active || gameOver || won) return
+    cameraYaw += (Math.abs(horizontal) > 0.16 ? horizontal : 0) * 2.2 * dt
+    cameraPitch += (Math.abs(vertical) > 0.16 ? vertical : 0) * 1.6 * dt
+    cameraPitch = Math.max(-0.45, Math.min(0.45, cameraPitch))
   }
 
   const dispose = () => {
@@ -975,6 +992,7 @@ export function createLevel8Session(deps) {
     handleKeyUp,
     clearKeys,
     applyCamera,
+    handleCameraInput,
     continueFromCheckpoint,
     restartFromScratch,
     isGameOver: () => gameOver,

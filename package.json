@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "release": "npm run build && node scripts/create-release.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "optimize:buildings": "node scripts/optimize-glbs.mjs --ratio=0.12 --error=0.01 --tex=512 --join public BarberShop.glb BrickWall.glb CellPhoneRepairShop.glb GenericBuilding.glb InternetCafe.glb MuthiShop.glb SpazaShop.glb TuckShop.glb SowetoTower1.glb SowetoTower2.glb"

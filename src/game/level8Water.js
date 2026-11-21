@@ -1,4 +1,4 @@
-// level8Water.js — Rising flood zones, currents, and soak tests for Level 8.
+// level8Water.js — Rising flood zones, currents, and soak tests for Level 7.
 
 export const LEVEL8_SHALLOW_MIN = 0.25
 export const LEVEL8_DEEP_MIN = 0.7

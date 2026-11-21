@@ -76,6 +76,8 @@ export const LEVEL6_NAVIGATOR = {
 const CAM_OFFSET = new THREE.Vector3(0, 5.5, 10)
 const CAM_OFFSET_CROUCH = new THREE.Vector3(0, 3.5, 9)
 const CAM_TARGET_OFFSET = new THREE.Vector3(0, 1.7, 0)
+const CAM_Y_AXIS = new THREE.Vector3(0, 1, 0)
+const CAM_X_AXIS = new THREE.Vector3(1, 0, 0)
 const CAM_LERP = 0.12
 const CROUCH_SCALE_Y = 0.55
 const GRACE_AFTER_RESPAWN = 1.5
@@ -177,6 +179,8 @@ export function createLevel6Session(deps) {
   let cKeyDown = false
   let crouchBlend = 0
   let snapCamera = true
+  let cameraYaw = 0
+  let cameraPitch = 0
   let sprintingNow = false
   let movingNow = false
   let appliedViewIndex = getLevel6ViewIndex()
@@ -433,6 +437,8 @@ export function createLevel6Session(deps) {
     crouchHeld = false
     cKeyDown = false
     crouchBlend = 0
+    cameraYaw = 0
+    cameraPitch = 0
     sprintingNow = false
     movingNow = false
     snapCamera = true
@@ -671,7 +677,12 @@ export function createLevel6Session(deps) {
       cam.fov = step.fov
       cam.updateProjectionMatrix()
     }
-    camOffset.copy(CAM_OFFSET).lerp(CAM_OFFSET_CROUCH, crouchBlend).multiplyScalar(step.scale)
+    camOffset
+      .copy(CAM_OFFSET)
+      .lerp(CAM_OFFSET_CROUCH, crouchBlend)
+      .multiplyScalar(step.scale)
+      .applyAxisAngle(CAM_Y_AXIS, cameraYaw)
+      .applyAxisAngle(CAM_X_AXIS, cameraPitch)
     camTarget.set(pos.x, 0, pos.z).add(camOffset)
     if (snapCamera || appliedViewIndex !== viewIndex) {
       cam.position.copy(camTarget)
@@ -682,6 +693,13 @@ export function createLevel6Session(deps) {
     }
     camLook.set(pos.x, 0, pos.z).add(CAM_TARGET_OFFSET)
     cam.lookAt(camLook)
+  }
+
+  const handleCameraInput = (horizontal, vertical, dt) => {
+    if (!active || gameOver || won) return
+    cameraYaw += (Math.abs(horizontal) > 0.16 ? horizontal : 0) * 2.2 * dt
+    cameraPitch += (Math.abs(vertical) > 0.16 ? vertical : 0) * 1.6 * dt
+    cameraPitch = Math.max(-0.45, Math.min(0.45, cameraPitch))
   }
 
   const dispose = () => {
@@ -716,6 +734,7 @@ export function createLevel6Session(deps) {
     clearKeys,
     registerStrike,
     applyCamera,
+    handleCameraInput,
     isGameOver: () => gameOver,
     isWon: () => won,
     isCrouching,

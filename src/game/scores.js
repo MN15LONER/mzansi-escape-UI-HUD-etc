@@ -15,7 +15,7 @@ import { levelHighScoreKey } from './storageKeys.js'
 import {
   isLevelPlayable,
   levelUsesTimeScore,
-  TOTAL_LEVEL_COUNT,
+  PLAYABLE_LEVEL_NUMBERS,
 } from './levels.js'
 
 const accountScoresCacheKey = (uid) => `mzansi_account_scores_${uid}`
@@ -413,8 +413,7 @@ export function buildMergedPersonalRows(cloudRows = []) {
       sanitizeStoredBest(row.levelId, row.bestScore),
     ])
   )
-  return Array.from({ length: TOTAL_LEVEL_COUNT }, (_, i) => {
-    const levelId = i + 1
+  return PLAYABLE_LEVEL_NUMBERS.map((levelId) => {
     const local = readLocalBest(levelId)
     const cloud = sanitizeStoredBest(levelId, byLevel.get(levelId) ?? 0)
     const best = levelUsesTimeScore(levelId)
@@ -544,7 +543,7 @@ export async function hydrateAccountScores(uid) {
   }
 
   const publishes = []
-  for (let level = 1; level <= TOTAL_LEVEL_COUNT; level++) {
+  for (const level of PLAYABLE_LEVEL_NUMBERS) {
     const key = levelHighScoreKey(level)
     const local = readLocalBest(level)
     const cloud = sanitizeStoredBest(level, byCloud.get(level) ?? 0)
@@ -616,11 +615,8 @@ export async function fetchGlobalLeaderboard(levelId) {
  * @returns {Promise<Array<{ levelId: number, rows: Array<{ uid: string, displayName: string, bestScore: number, rank: number, tier: ScoreTier }> }>>}
  */
 export async function fetchAllGlobalLeaderboards() {
-  const ids = Array.from({ length: TOTAL_LEVEL_COUNT }, (_, i) => i + 1).filter(
-    (id) => isLevelPlayable(id)
-  )
   return Promise.all(
-    ids.map(async (levelId) => ({
+    PLAYABLE_LEVEL_NUMBERS.map(async (levelId) => ({
       levelId,
       rows: await fetchGlobalLeaderboard(levelId),
     }))

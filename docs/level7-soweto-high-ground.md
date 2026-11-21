@@ -1,8 +1,8 @@
-# Level 8 — Soweto Homecoming: High Ground
+# Level 7 — Soweto Homecoming: High Ground
 
-**Scope freeze.** This is the build contract for the two people on Level 8. If it is not in this doc, it is out of scope unless both of you agree in writing.
+**Scope freeze.** This is the build contract for the two people on Level 7. If it is not in this doc, it is out of scope unless both of you agree in writing.
 
-**Check Level 7 first.** If that pair already took floods / Joburg weather, stop and switch to the backup at the bottom.
+**Replacement level.** The Soweto Homecoming gameplay fills the game's seventh level slot.
 
 ---
 
@@ -24,7 +24,7 @@ Spawn (Vilakazi strip) → Clinic → School → Spaza (crate fetch) → Home on
 
 ## Player systems
 
-| | Level 6 Cape Flats | Level 8 Soweto |
+| | Level 6 Cape Flats | Level 7 Soweto |
 | --- | --- | --- |
 | Kind | Open world, third-person | Same camera / WASD / Shift sprint |
 | Hazard | Faceless patrols, vision cones | Rising water + current channels |
@@ -200,8 +200,8 @@ Win overlay (before Level Complete, same pattern as `GBVImpactOverlay.jsx`):
 | --- | --- |
 | `src/game/level8City.js` | Ground, Soweto houses, canal, colliders, anchors, checkpoint spots, water meshes that `setStage(n)` raises |
 | `src/game/level8Session.js` | Copy Level 6 session: third-person, bounds, checkpoints, soak/respawn, win, HUD, keys |
-| `src/game/levels.js` | `LEVEL_8` config |
-| `src/game/useRoadSceneEngine.js` | `createLevel8Session`, `setActive` when `id === 8`, include in `openWorldSession()` |
+| `src/game/levels.js` | Soweto Homecoming gameplay config |
+| `src/game/useRoadSceneEngine.js` | Reuse the existing Soweto session for the seventh menu slot |
 | `src/game/levelBriefings.js` | Briefing above |
 | `src/components/Level8Objective.jsx` | Soak pips, time, notes, neighbours 0/3, navigator, checkpoint flash |
 | `src/RoadScene.jsx` | Mount HUD + flood overlay; reset HUD fields on level change |
@@ -250,6 +250,6 @@ If a feature is not required to walk spawn → three beats → home with rising 
 
 ---
 
-## Backup if Level 7 already owns floods
+## Optional backup: Power to the People
 
 **Soweto Homecoming: Power to the People** — same map and third-person shell, replace water with a **sunlight charge** meter (drain in shade, fill in the open). Three plug-in beats at clinic fridge, street robot, home lights. Same file split; `level8Water.js` becomes `level8Solar.js`. Still no combat.

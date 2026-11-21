@@ -181,19 +181,6 @@ export const LEVEL_6 = {
 }
 
 /** @type {LevelConfig} */
-export const LEVEL_7 = {
-  id: 7,
-  label: 'Level 7',
-  playerKind: 'runner',
-  hazardKind: 'none',
-  jumpEnabled: false,
-  rollEnabled: false,
-  potholesEnabled: false,
-  scoreLabel: 'Coming soon',
-  hazardPastLabel: 'Coming soon',
-}
-
-/** @type {LevelConfig} */
 export const LEVEL_8 = {
   id: 8,
   label: 'Soweto Homecoming',
@@ -213,22 +200,23 @@ export const LEVEL_8 = {
   scoreKind: 'time',
 }
 
-const LEVELS = [
-  LEVEL_1,
-  LEVEL_2,
-  LEVEL_3,
-  LEVEL_4,
-  LEVEL_5,
-  LEVEL_6,
-  LEVEL_7,
-  LEVEL_8,
-]
+export const PLAYABLE_LEVEL_NUMBERS = [1, 2, 3, 4, 5, 6, 8]
 
 /** Total level slots shown in the main-menu picker. */
-export const TOTAL_LEVEL_COUNT = 8
+export const TOTAL_LEVEL_COUNT = PLAYABLE_LEVEL_NUMBERS.length
 
 /** Levels that can be started from the menu while the rest are still in progress. */
-export const PLAYABLE_LEVELS = new Set([1, 2, 3, 4, 5, 6, 8])
+export const PLAYABLE_LEVELS = new Set(PLAYABLE_LEVEL_NUMBERS)
+
+const LEVELS = new Map([
+  [LEVEL_1.id, LEVEL_1],
+  [LEVEL_2.id, LEVEL_2],
+  [LEVEL_3.id, LEVEL_3],
+  [LEVEL_4.id, LEVEL_4],
+  [LEVEL_5.id, LEVEL_5],
+  [LEVEL_6.id, LEVEL_6],
+  [LEVEL_8.id, LEVEL_8],
+])
 
 /** @param {number} levelNumber */
 export function isLevelPlayable(levelNumber) {
@@ -236,8 +224,20 @@ export function isLevelPlayable(levelNumber) {
 }
 
 /** @param {number} levelNumber */
+export function getLevelDisplayNumber(levelNumber) {
+  const index = PLAYABLE_LEVEL_NUMBERS.indexOf(levelNumber)
+  return index < 0 ? levelNumber : index + 1
+}
+
+/** @param {number} levelNumber */
+export function getNextLevelNumber(levelNumber) {
+  const index = PLAYABLE_LEVEL_NUMBERS.indexOf(levelNumber)
+  return index < 0 ? null : PLAYABLE_LEVEL_NUMBERS[index + 1] ?? null
+}
+
+/** @param {number} levelNumber */
 export function getLevelConfig(levelNumber) {
-  return LEVELS[levelNumber - 1] ?? LEVEL_1
+  return LEVELS.get(levelNumber) ?? LEVEL_1
 }
 
 /** Timed levels store milliseconds; lower is better. */

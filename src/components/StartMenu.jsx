@@ -3,9 +3,16 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../AuthContext.jsx'
 import { CharacterPreview } from '../CharacterPreview.jsx'
+import {
+  getConnectedGamepads,
+  getPreferredGamepad,
+} from '../game/gamepadInput.js'
 import { CHARACTERS, KENNEY_RUN_FBX } from '../game/characterAssets.js'
 import { LEVEL2_PLAYER_CARS } from '../game/level2CarAssets.js'
-import { isLevelPlayable, TOTAL_LEVEL_COUNT } from '../game/levels.js'
+import {
+  getLevelConfig,
+  PLAYABLE_LEVEL_NUMBERS,
+} from '../game/levels.js'
 import {
   FREE_CAR_IDS,
   FREE_CHARACTER_IDS,
@@ -14,6 +21,15 @@ import {
   getItemPrice,
 } from '../game/store.js'
 import { ScoreboardsPanel } from './ScoreboardsPanel.jsx'
+
+const LEVEL_COVER_IMAGES = {
+  1: '/level-covers/level-1.webp',
+  2: '/level-covers/level-2.webp',
+  4: '/level-covers/level-4.webp',
+  5: '/level-covers/level-5.webp',
+  6: '/level-covers/level-6.webp',
+  8: '/level-covers/level-7.webp',
+}
 
 function MenuIcon({ name, className = 'start-menu__tile-icon' }) {
   const common = {
@@ -166,6 +182,62 @@ export function StartMenu({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
+  const [connectedGamepads, setConnectedGamepads] = useState([])
+  const [gamepadInput, setGamepadInput] = useState({
+    pressedButtons: [],
+    activeAxes: [],
+  })
+
+  useEffect(() => {
+    if (menuScreen !== 'options') return undefined
+
+    const refreshGamepads = () => {
+      const nextGamepads = getConnectedGamepads()
+      setConnectedGamepads((current) => {
+        const unchanged =
+          current.length === nextGamepads.length &&
+          current.every((gamepad, index) => {
+            const next = nextGamepads[index]
+            return (
+              gamepad.index === next.index &&
+              gamepad.id === next.id &&
+              gamepad.mapping === next.mapping &&
+              gamepad.buttons.length === next.buttons.length &&
+              gamepad.axes.length === next.axes.length
+            )
+          })
+        return unchanged ? current : nextGamepads
+      })
+      const gamepad = getPreferredGamepad(nextGamepads)
+      const pressedButtons = gamepad
+          ? Array.from(gamepad.buttons, (button, index) =>
+              button.pressed || button.value > 0.5 ? index : null
+            ).filter((index) => index !== null)
+          : []
+      const activeAxes = gamepad
+          ? Array.from(gamepad.axes, (value, index) => {
+              const rounded = Math.round(value * 10) / 10
+              return Math.abs(rounded) > 0.2 ? `${index}:${rounded.toFixed(1)}` : null
+            }).filter((value) => value !== null)
+          : []
+      const inputSignature = `${pressedButtons.join(',')}|${activeAxes.join(',')}`
+      setGamepadInput((current) =>
+          current.signature === inputSignature
+            ? current
+            : { pressedButtons, activeAxes, signature: inputSignature }
+      )
+    }
+    refreshGamepads()
+    const interval = window.setInterval(refreshGamepads, 100)
+    window.addEventListener('gamepadconnected', refreshGamepads)
+    window.addEventListener('gamepaddisconnected', refreshGamepads)
+
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('gamepadconnected', refreshGamepads)
+      window.removeEventListener('gamepaddisconnected', refreshGamepads)
+    }
+  }, [menuScreen])
 
   useEffect(() => {
     if (menuScreen === 'account') {
@@ -275,6 +347,16 @@ export function StartMenu({
       </div>
     )
   }
+  const selectedLevelIndex = Math.max(
+    0,
+    PLAYABLE_LEVEL_NUMBERS.indexOf(menuSelectedLevel)
+  )
+  const selectedLevelNumber = PLAYABLE_LEVEL_NUMBERS[selectedLevelIndex]
+  const selectedLevelDisplayNumber = selectedLevelIndex + 1
+  const selectedLevelConfig = getLevelConfig(selectedLevelNumber)
+  const selectedLevelCover = LEVEL_COVER_IMAGES[selectedLevelNumber]
+  const primaryGamepad = getPreferredGamepad(connectedGamepads)
+
   return (
     <div
       className="start-menu start-menu--retro start-menu--title-screen"
@@ -579,38 +661,66 @@ export function StartMenu({
           >
             <h2 className="start-menu__sub-title">Levels</h2>
             <p className="start-menu__options-sub">
-              Choose a level, then start from New Game on the main menu.
+              Browse the seven levels. Select one, then choose New Game from the
+              main menu.
             </p>
-            <div className="start-menu__level-select">
-              <div className="start-menu__level-grid">
-                {Array.from({ length: TOTAL_LEVEL_COUNT }, (_, index) => {
-                  const level = index + 1
-                  const playable = isLevelPlayable(level)
-                  const selected = menuSelectedLevel === level
-                  return (
-                    <button
-                      key={level}
-                      type="button"
-                      className={
-                        'start-menu__level-block' +
-                        (playable ? '' : ' start-menu__level-block--locked') +
-                        (selected ? ' start-menu__level-block--selected' : '')
-                      }
-                      onClick={() => {
-                        if (!playable) return
-                        onSelectLevel(level)
-                      }}
-                      aria-label={
-                        playable
-                          ? `Start level ${level}`
-                          : `Level ${level} coming soon`
-                      }
-                    >
-                      {level}
-                    </button>
-                  )
-                })}
+            <div
+              className="start-menu__level-select"
+              aria-label="Level selection"
+            >
+              <div className="start-menu__level-carousel">
+                <button
+                  type="button"
+                  className="start-menu__level-arrow"
+                  aria-label="Previous level"
+                  disabled={selectedLevelIndex === 0}
+                  onClick={() =>
+                    onSelectLevel(PLAYABLE_LEVEL_NUMBERS[selectedLevelIndex - 1])
+                  }
+                >
+                  ‹
+                </button>
+                <article
+                  className="start-menu__level-card"
+                  aria-live="polite"
+                  aria-label={`Level ${selectedLevelDisplayNumber}: ${selectedLevelConfig.label}`}
+                >
+                  {selectedLevelCover ? (
+                    <img
+                      className="start-menu__level-cover"
+                      src={selectedLevelCover}
+                      alt={`${selectedLevelConfig.label} level artwork`}
+                    />
+                  ) : (
+                    <div className="start-menu__level-cover-placeholder">
+                      <span className="start-menu__level-cover-placeholder-city" aria-hidden="true" />
+                      <span>Artwork coming soon</span>
+                    </div>
+                  )}
+                  <div className="start-menu__level-card-caption">
+                    <span className="start-menu__level-card-number">
+                      LEVEL {selectedLevelDisplayNumber}
+                    </span>
+                    <h3>{selectedLevelConfig.label}</h3>
+                  </div>
+                </article>
+                <button
+                  type="button"
+                  className="start-menu__level-arrow"
+                  aria-label="Next level"
+                  disabled={
+                    selectedLevelIndex === PLAYABLE_LEVEL_NUMBERS.length - 1
+                  }
+                  onClick={() =>
+                    onSelectLevel(PLAYABLE_LEVEL_NUMBERS[selectedLevelIndex + 1])
+                  }
+                >
+                  ›
+                </button>
               </div>
+              <p className="start-menu__level-position" aria-live="polite">
+                {selectedLevelDisplayNumber} / {PLAYABLE_LEVEL_NUMBERS.length}
+              </p>
             </div>
             <button
               type="button"
@@ -673,6 +783,77 @@ export function StartMenu({
               >
                 {autoForward ? 'Auto-forward: On' : 'Auto-forward: Off'}
               </button>
+            </section>
+            <section
+              className="start-menu__options-section"
+              aria-labelledby="options-gamepad-heading"
+            >
+              <h3
+                id="options-gamepad-heading"
+                className="start-menu__options-heading"
+              >
+                Xbox / USB Controller
+              </h3>
+              <p className="start-menu__options-sub">
+                Plug in by USB, or pair a Bluetooth Xbox controller in Windows
+                Settings. Then click the game and press any controller button;
+                no setup or code edits are needed. Keyboard controls always
+                remain available.
+              </p>
+              {connectedGamepads.length > 0 ? (
+                <>
+                  <p className="start-menu__options-sub">
+                    Connected: {primaryGamepad?.id ?? 'Controller'} ·{' '}
+                    {primaryGamepad?.mapping === 'standard'
+                      ? 'ready — standard Xbox layout'
+                      : `unmapped layout (${primaryGamepad?.buttons.length ?? 0} buttons, ${primaryGamepad?.axes.length ?? 0} axes)`}
+                    {connectedGamepads.length > 1
+                      ? ` · ${connectedGamepads.length - 1} other controller(s) connected`
+                      : ''}
+                  </p>
+                  {primaryGamepad?.mapping !== 'standard' ? (
+                    <p className="start-menu__options-sub">
+                      This controller does not report a standard button
+                      layout. Left-stick movement may still work, but mapped
+                      button actions may not. Try a USB connection or use
+                      keyboard controls.
+                    </p>
+                  ) : (
+                    <p className="start-menu__options-sub">
+                      Left stick / D-pad: move or choose · A: confirm, jump or
+                      action · B: back, roll or crouch · X: interact · Y: Q
+                      action · LB / RB / LT / RT: sprint · right stick: look
+                      around · Menu: pause.
+                    </p>
+                  )}
+                  <p className="start-menu__options-sub" aria-live="polite">
+                    Live input — buttons:{' '}
+                    {gamepadInput.pressedButtons.length > 0
+                      ? gamepadInput.pressedButtons.map((index) => `#${index}`).join(', ')
+                      : 'none'}
+                    {' · '}axes:{' '}
+                    {gamepadInput.activeAxes.length > 0
+                      ? gamepadInput.activeAxes.join(', ')
+                      : 'centered'}
+                  </p>
+                  <p className="start-menu__options-sub">
+                    To move, tilt the left stick without pressing it down. The
+                    clicks you reported are L3 / R3. Tilt a stick or press a
+                    D-pad direction and check which live axes or buttons
+                    change.
+                  </p>
+                </>
+              ) : (
+                <p className="start-menu__options-sub">
+                  No controller detected yet. For wired play, connect a USB
+                  cable. For wireless play, pair the controller in Windows
+                  Bluetooth settings (some older Xbox controllers need the
+                  Xbox Wireless Adapter). Click the game page and press a
+                  controller button. If it still is not found, check that
+                  Windows sees it in Set up USB game controllers, then reload
+                  the game.
+                </p>
+              )}
             </section>
             <section
               className="start-menu__options-section"

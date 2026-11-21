@@ -1,7 +1,7 @@
 // levelBriefings.js — New-player briefing copy shown before each playable level.
 
 import { LEVEL3_BUS_FARE } from './level3Coins.js'
-import { getLevelConfig } from './levels.js'
+import { getLevelConfig, getLevelDisplayNumber } from './levels.js'
 
 /**
  * @typedef {{
@@ -89,8 +89,10 @@ export function getLevelBriefing(levelNumber) {
   if (!briefing) return null
   const config = getLevelConfig(levelNumber)
   return {
-    level: levelNumber,
+    level: getLevelDisplayNumber(levelNumber),
     label: config.label,
     ...briefing,
+    controls:
+      `${briefing.controls} · Xbox controller: left stick / D-pad: move · A: confirm / jump / action · B: back / roll / crouch · X: interact · Y: Q action · LB / RB / LT / RT: sprint · right stick: camera in open-world levels · Menu: pause`,
   }
 }

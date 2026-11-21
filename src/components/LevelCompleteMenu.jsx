@@ -1,7 +1,11 @@
 // LevelCompleteMenu.jsx — Level win panel.
 
 import { formatRunTime } from '../game/scores.js'
-import { isLevelPlayable, levelUsesTimeScore } from '../game/levels.js'
+import {
+  getLevelDisplayNumber,
+  getNextLevelNumber,
+  levelUsesTimeScore,
+} from '../game/levels.js'
 
 export function LevelCompleteMenu({
   level,
@@ -23,7 +27,8 @@ export function LevelCompleteMenu({
   const isLevel6 = level === 6
   const isLevel8 = level === 8
   const timed = levelUsesTimeScore(level)
-  const hasNextLevel = isLevelPlayable(level + 1)
+  const displayLevel = getLevelDisplayNumber(level)
+  const hasNextLevel = getNextLevelNumber(level) !== null
   return (
     <div
       className="start-menu start-menu--retro start-menu--over-game game-level-complete"
@@ -46,7 +51,7 @@ export function LevelCompleteMenu({
                     : 'Run cleared'}
         </p>
         <h2 className="start-menu__sub-title game-level-complete__title">
-          Level {level} Complete
+          Level {displayLevel} Complete
         </h2>
         <p className="start-menu__sub-body game-level-complete__subtitle">
           {isLevel3

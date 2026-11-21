@@ -29,7 +29,11 @@ import { useAuth } from './AuthContext.jsx'
 import { CHARACTERS } from './game/characterAssets.js'
 import { setMusicMuted, startBgm, stopBgm } from './game/gameAudio.js'
 import { getLevelBriefing } from './game/levelBriefings.js'
-import { getLevelConfig, isLevelPlayable } from './game/levels.js'
+import {
+  getLevelConfig,
+  getNextLevelNumber,
+  isLevelPlayable,
+} from './game/levels.js'
 import { sanitizeStoredBest } from './game/scores.js'
 import {
   flushAccountProgressSave,
@@ -488,7 +492,8 @@ export function RoadScene() {
   }, [closeLevel6Warning])
 
   const nextLevelFromWin = useCallback(() => {
-    const next = currentLevelRef.current + 1
+    const next = getNextLevelNumber(currentLevelRef.current)
+    if (next === null) return
     currentLevelRef.current = next
     setMenuSelectedLevel(next)
     menuSelectedLevelRef.current = next

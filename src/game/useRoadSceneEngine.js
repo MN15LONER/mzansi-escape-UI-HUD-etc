@@ -28,6 +28,15 @@ import { submitBestScore } from './scores.js'
 import { levelHighScoreKey } from './storageKeys.js'
 import { resolveForwardAxis } from './movementInput.js'
 import {
+  activateGamepadFocus,
+  getConnectedGamepads,
+  getGamepadUiDirection,
+  getPreferredGamepad,
+  isGamepadButtonPressed,
+  navigateGamepadFocus,
+  syncGamepadKeyboardInput,
+} from './gamepadInput.js'
+import {
   applyLimbRunGait,
   LANE_STRAFE_FOR_RUN_EPS,
   proceduralRunState,
@@ -1605,11 +1614,76 @@ export function useRoadSceneEngine({
     let lastT = performance.now() / 1000
     let raf = 0
     let prevOpenPos = { x: 0, z: 0 }
+    let gamepadCodesDown = new Set()
+    let uiNavigationArmed = false
+    let confirmWasPressed = false
+    let backWasPressed = false
+    let startWasPressed = false
 
     const update = (nowMs) => {
       const started = isGameplayActive()
       const t = nowMs / 1000
       const dt = Math.min(0.05, t - lastT)
+      const connectedGamepad = getPreferredGamepad(getConnectedGamepads())
+      gamepadCodesDown = syncGamepadKeyboardInput(gamepadCodesDown, started)
+      if (started && getLevelConfig(currentLevelRef.current).playerKind === 'openworld') {
+        const axes = connectedGamepad?.axes ?? []
+        openWorldSession().handleCameraInput?.(axes[2] ?? 0, axes[3] ?? 0, dt)
+      }
+      const uiDirection = started ? null : getGamepadUiDirection(connectedGamepad)
+      if (started) {
+        uiNavigationArmed = false
+      } else if (uiDirection) {
+        if (uiNavigationArmed) {
+          navigateGamepadFocus(uiDirection)
+          uiNavigationArmed = false
+        }
+      } else {
+        uiNavigationArmed = true
+      }
+      const confirmPressed = isGamepadButtonPressed(connectedGamepad, 0)
+      const backPressed = isGamepadButtonPressed(connectedGamepad, 1)
+      const startPressed = isGamepadButtonPressed(connectedGamepad, 9)
+      if (started) {
+        confirmWasPressed = confirmPressed
+        backWasPressed = backPressed
+        startWasPressed = startPressed
+      } else {
+        if (confirmPressed && !confirmWasPressed) {
+          if (levelBriefingOpenRef?.current || level6WarningOpenRef?.current) {
+            window.dispatchEvent(
+              new KeyboardEvent('keydown', {
+                code: 'Enter',
+                bubbles: true,
+                cancelable: true,
+              })
+            )
+          } else {
+            activateGamepadFocus()
+          }
+        }
+        if (backPressed && !backWasPressed) {
+          window.dispatchEvent(
+            new KeyboardEvent('keydown', {
+              code: 'Escape',
+              bubbles: true,
+              cancelable: true,
+            })
+          )
+        }
+        if (startPressed && !startWasPressed) {
+          window.dispatchEvent(
+            new KeyboardEvent('keydown', {
+              code: 'Escape',
+              bubbles: true,
+              cancelable: true,
+            })
+          )
+        }
+        confirmWasPressed = confirmPressed
+        backWasPressed = backPressed
+        startWasPressed = startPressed
+      }
       if (pausedRef.current && gameStartedRef.current && playStartedRef.current && !game.over && !game.won) {
         lastT = t
         renderer.render(scene, camera)
@@ -1954,6 +2028,10 @@ export function useRoadSceneEngine({
       level5.clearKeys()
       level6.clearKeys()
       level8.clearKeys()
+      for (const code of gamepadCodesDown) {
+        window.dispatchEvent(new KeyboardEvent('keyup', { code, bubbles: true }))
+      }
+      gamepadCodesDown.clear()
     }
     const onPointerDown = () => {
       container.focus({ preventScroll: true })

@@ -293,6 +293,13 @@ export function createLevel3Session(deps) {
     pitch = Math.max(-1.35, Math.min(1.35, pitch))
   }
 
+  const handleCameraInput = (horizontal, vertical, dt) => {
+    if (!active || gameOver || won) return
+    yaw -= (Math.abs(horizontal) > 0.16 ? horizontal : 0) * 2.2 * dt
+    pitch -= (Math.abs(vertical) > 0.16 ? vertical : 0) * 2.0 * dt
+    pitch = Math.max(-1.35, Math.min(1.35, pitch))
+  }
+
   const onMouseDown = (e) => {
     if (!active || gameOver || won) return
     if (e.button === 0) {
@@ -551,6 +558,7 @@ export function createLevel3Session(deps) {
     dispose,
     handleKeyDown,
     handleKeyUp,
+    handleCameraInput,
     clearKeys,
     tryPunch,
     isGameOver: () => gameOver,

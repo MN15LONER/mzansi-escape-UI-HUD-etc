@@ -1,4 +1,4 @@
-// FloodImpactOverlay.jsx — Level 8 win: flood-safety message + 112, shown before level complete.
+// FloodImpactOverlay.jsx — Level 7 win: flood-safety message + 112, shown before level complete.
 
 import { useEffect, useRef } from 'react'
 

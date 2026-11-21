@@ -13,6 +13,7 @@ import {
 } from '../game/scores.js'
 import {
   getLevelConfig,
+  getLevelDisplayNumber,
   isLevelPlayable,
   levelUsesTimeScore,
 } from '../game/levels.js'
@@ -171,11 +172,12 @@ export function ScoreboardsPanel({ menuScreen, onNavigate }) {
             <tbody>
               {personalRows.map((row) => {
                 const cfg = getLevelConfig(row.levelId)
+                const displayLevel = getLevelDisplayNumber(row.levelId)
                 const playable = isLevelPlayable(row.levelId)
                 return (
                   <tr key={row.levelId}>
                     <td>
-                      {row.levelId}. {cfg.label}
+                      {displayLevel}. {cfg.label}
                       {!playable ? ' (soon)' : ''}
                     </td>
                     <td>{formatScoreValue(row.levelId, row.bestScore)}</td>
@@ -208,6 +210,7 @@ export function ScoreboardsPanel({ menuScreen, onNavigate }) {
             <div className="start-menu__score-global">
               {globalBoards.map((board) => {
                 const cfg = getLevelConfig(board.levelId)
+                const displayLevel = getLevelDisplayNumber(board.levelId)
                 const youRow = user
                   ? board.rows.find((row) => row.uid === user.uid)
                   : null
@@ -221,7 +224,7 @@ export function ScoreboardsPanel({ menuScreen, onNavigate }) {
                       className="start-menu__score-level-title"
                       id={`global-level-${board.levelId}`}
                     >
-                      {board.levelId}. {cfg.label}
+                      {displayLevel}. {cfg.label}
                     </h3>
                     {user ? (
                       <p className="start-menu__score-rank" aria-live="polite">
