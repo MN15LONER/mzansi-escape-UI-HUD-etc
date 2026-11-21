@@ -63,8 +63,17 @@ export function loadLevel2CarTemplate(carId) {
   return promise
 }
 
-export function preloadAllLevel2Cars() {
-  for (const { id } of LEVEL2_PLAYER_CARS) {
+const DEFAULT_LEVEL2_CAR_ID = 'polo'
+
+/**
+ * Level 2 start only. Loads the default Polo and the car the player has
+ * selected. Other cars load through preloadLevel2Car when chosen in Options.
+ * @param {string} [selectedCarId]
+ */
+export function preloadLevel2CarsForStart(selectedCarId) {
+  const ids = new Set([DEFAULT_LEVEL2_CAR_ID])
+  if (selectedCarId) ids.add(selectedCarId)
+  for (const id of ids) {
     loadLevel2CarTemplate(id)
   }
 }

@@ -88,5 +88,11 @@ export const LEVEL2_HAZARD_CARS = [
   },
 ]
 
+/**
+ * Oncoming traffic uses this small set only. Each file is well under 8 MB.
+ * Other ids stay in LEVEL2_HAZARD_CARS so parked/ambient cars can still load them.
+ */
+export const LEVEL2_TRAFFIC_CAR_IDS = ['polo', 'mazda', 'suzuki', 'cherry']
+
 /** @deprecated Use LEVEL2_HAZARD_CARS — kept for any legacy imports. */
 export const LEVEL2_OBSTACLE_MODELS = LEVEL2_HAZARD_CARS.map((c) => c.url)

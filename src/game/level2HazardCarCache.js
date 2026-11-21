@@ -2,7 +2,10 @@
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
-import { LEVEL2_HAZARD_CARS } from './level2ObstacleAssets.js'
+import {
+  LEVEL2_HAZARD_CARS,
+  LEVEL2_TRAFFIC_CAR_IDS,
+} from './level2ObstacleAssets.js'
 import { prepareHazardCarModel } from './modelPrep.js'
 import { disposeObject3D } from './threeDispose.js'
 import { DRACO_DECODER_PATH } from './dracoPath.js'
@@ -75,16 +78,16 @@ export function loadLevel2HazardCarTemplate(carId) {
   return promise
 }
 
-/** @returns {Promise<void>} */
+/** Loads the small traffic set. Other hazard ids still load on demand. @returns {Promise<void>} */
 export function preloadAllLevel2HazardCars() {
   return Promise.all(
-    LEVEL2_HAZARD_CARS.map(({ id }) => loadLevel2HazardCarTemplate(id))
+    LEVEL2_TRAFFIC_CAR_IDS.map((id) => loadLevel2HazardCarTemplate(id))
   ).then(() => {})
 }
 
-/** @returns {import('three').Object3D[]} */
+/** Templates eligible for oncoming traffic. @returns {import('three').Object3D[]} */
 export function getLevel2HazardCarTemplates() {
-  return LEVEL2_HAZARD_CARS.map(({ id }) => templates.get(id)).filter(Boolean)
+  return LEVEL2_TRAFFIC_CAR_IDS.map((id) => templates.get(id)).filter(Boolean)
 }
 
 export function isLevel2HazardCarsReady() {

@@ -94,7 +94,7 @@ import {
   createLevel2CarInstance,
   disposeLevel2CarCache,
   isLevel2CarCached,
-  preloadAllLevel2Cars,
+  preloadLevel2CarsForStart,
   preloadLevel2Car as preloadLevel2CarAsset,
   whenLevel2CarReady,
 } from './level2CarCache.js'
@@ -1432,7 +1432,7 @@ export function useRoadSceneEngine({
     applyPlayerForCurrentLevelRef.current = ensurePlayerForCurrentLevel
     preloadLevel2CarRef.current = preloadLevel2Car
     preloadTaxi() // Preload taxi for level 1
-    preloadAllLevel2Cars()
+    preloadLevel2CarsForStart(selectedLevel2CarIdRef.current)
     preloadAllLevel2HazardCars()
     const cokeCollectibleAssets = createCokeCollectibleAssetLoader({
       onReady: () => {
