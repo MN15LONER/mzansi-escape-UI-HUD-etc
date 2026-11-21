@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "deploy:web": "npm run build && firebase deploy --only hosting",
     "release": "npm run build && node scripts/create-release.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
