@@ -96,6 +96,9 @@ const BARK_HOLD_MS = 3200
 const SKY = 0x8aa0b4
 const SKY_STORM = 0x4a5c70
 const FLASH_BLUE = new THREE.Color(0x4db8ff)
+const FLASH_WHITE = new THREE.Color(0xf7fbff)
+const SKY_COLOR = new THREE.Color(SKY)
+const SKY_STORM_COLOR = new THREE.Color(SKY_STORM)
 const PLAYER_START = {
   x: LEVEL8_ANCHORS.spawn.x,
   y: LEVEL8_PLAYER_HEIGHT,
@@ -290,11 +293,16 @@ export function createLevel8Session(deps) {
     if (carriedCrate) carriedCrate.visible = true
   }
 
+  const clearFog = new THREE.FogExp2(SKY, 0.006)
+  const stormFog = new THREE.FogExp2(SKY_STORM, 0.012)
+  let appliedStormLook = null
   const applyStormLook = (heavy) => {
-    const fog = heavy ? 0.012 : 0.006
-    const bg = heavy ? SKY_STORM : SKY
-    scene.fog = new THREE.FogExp2(bg, fog)
-    scene.background = new THREE.Color(bg)
+    if (appliedStormLook === heavy) return
+    appliedStormLook = heavy
+    scene.fog = heavy ? stormFog : clearFog
+    const color = heavy ? SKY_STORM_COLOR : SKY_COLOR
+    if (scene.background?.isColor) scene.background.copy(color)
+    else scene.background = color.clone()
   }
 
   const showPrompt = (text, holdMs = PROMPT_HOLD_MS) => {
@@ -783,10 +791,11 @@ export function createLevel8Session(deps) {
       lightningT = 0.16 + Math.random() * 0.14
       thunderNow = true
     }
+    applyStormLook(stormOn)
     if (scene.background?.isColor) {
-      applyStormLook(stormOn)
+      scene.background.copy(stormOn ? SKY_STORM_COLOR : SKY_COLOR)
       if (flashT > 0) scene.background.lerp(FLASH_BLUE, (flashT / 0.55) * 0.5)
-      else if (lightningT > 0) scene.background.lerp(new THREE.Color(0xf7fbff), 0.82)
+      else if (lightningT > 0) scene.background.lerp(FLASH_WHITE, 0.82)
     }
     sun.intensity = lightningT > 0 ? 4.6 : 1.05
     fill.intensity = lightningT > 0 ? 1.35 : 0.55

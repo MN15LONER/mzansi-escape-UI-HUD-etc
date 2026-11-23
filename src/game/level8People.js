@@ -15,7 +15,8 @@ import {
 import { loadLevel2HazardCarTemplate } from './level2HazardCarCache.js'
 import { cloneObstacleInstance, cloneTaxiInstance } from './modelPrep.js'
 import { pickRunClip } from '../mixamoAnimation.js'
-import { disposeObject3D } from './threeDispose.js'
+import { disposeObject3D, disposeTextures } from './threeDispose.js'
+import { IS_COARSE_POINTER } from './deviceProfile.js'
 
 const ADULT_LINES = [
   'Hai, that canal is angry today.',
@@ -283,7 +284,15 @@ export function createLevel8People(parent, opts = {}) {
   const charTemplates = new Map()
   const mixers = []
 
-  const walkers = PATHS.map((path, i) => {
+  const paths = IS_COARSE_POINTER ? [PATHS[0], PATHS[3], PATHS[5], PATHS[7]] : PATHS
+  const taxiSpots = IS_COARSE_POINTER ? TAXI_SPOTS.filter((_, i) => i % 2 === 0) : TAXI_SPOTS
+  const parkedCars = IS_COARSE_POINTER ? PARKED_CARS.slice(0, 3) : PARKED_CARS
+  const movingTaxis = IS_COARSE_POINTER ? MOVING_TAXIS.slice(0, 2) : MOVING_TAXIS
+  const standingSpots = IS_COARSE_POINTER
+    ? [STANDING[1], STANDING[2], STANDING[4]]
+    : STANDING
+
+  const walkers = paths.map((path, i) => {
     const holder = new THREE.Group()
     holder.add(makePerson(path.kind))
     const pts = path.pts.map(([x, z]) => new THREE.Vector3(x, 0, z))
@@ -302,7 +311,7 @@ export function createLevel8People(parent, opts = {}) {
     }
   })
 
-  const taxis = TAXI_SPOTS.map((spot) => {
+  const taxis = taxiSpots.map((spot) => {
     const holder = new THREE.Group()
     holder.add(makeTaxiFallback())
     holder.position.set(spot.x, 0, spot.z)
@@ -312,7 +321,7 @@ export function createLevel8People(parent, opts = {}) {
     return { mesh: holder, x: spot.x, z: spot.z }
   })
 
-  const parked = PARKED_CARS.map((spot) => {
+  const parked = parkedCars.map((spot) => {
     const holder = new THREE.Group()
     holder.add(makeCarFallback())
     holder.position.set(spot.x, 0, spot.z)
@@ -322,7 +331,7 @@ export function createLevel8People(parent, opts = {}) {
     return { mesh: holder, id: spot.id, source: spot.source }
   })
 
-  const standing = STANDING.map((spot) => {
+  const standing = standingSpots.map((spot) => {
     const holder = new THREE.Group()
     holder.add(makePerson(spot.kind))
     holder.position.set(spot.x, 0, spot.z)
@@ -331,7 +340,7 @@ export function createLevel8People(parent, opts = {}) {
     return { mesh: holder, kind: spot.kind, char: spot.char, barkAt: 5 + Math.random() * 9 }
   })
 
-  const moving = MOVING_TAXIS.map((path) => {
+  const moving = movingTaxis.map((path) => {
     const holder = new THREE.Group()
     holder.add(makeTaxiFallback())
     const pts = path.pts.map(([x, z]) => new THREE.Vector3(x, 0, z))
@@ -345,11 +354,21 @@ export function createLevel8People(parent, opts = {}) {
 
   const loadClip = (url) =>
     new Promise((resolve) => {
-      const done = (anims) => resolve(pickRunClip(anims) ?? anims[0] ?? null)
+      const done = (root, anims) => {
+        const clip = pickRunClip(anims) ?? anims[0] ?? null
+        disposeTextures(root)
+        disposeObject3D(root)
+        resolve(clip)
+      }
       if (/\.fbx$/i.test(url)) {
-        fbxLoader.load(url, (g) => done(g.animations || []), undefined, () => resolve(null))
+        fbxLoader.load(url, (g) => done(g, g.animations || []), undefined, () => resolve(null))
       } else {
-        gltfLoader.load(url, (gltf) => done(gltf.animations || []), undefined, () => resolve(null))
+        gltfLoader.load(
+          url,
+          (gltf) => done(gltf.scene, gltf.animations || []),
+          undefined,
+          () => resolve(null)
+        )
       }
     })
 
@@ -362,7 +381,19 @@ export function createLevel8People(parent, opts = {}) {
       const finish = async (root, anims) => {
         const model = fitCharacter(root, id === 'kid' ? 1.25 : 1.7)
         await applySkin(model, def.skinUrl, textureLoader)
+        if (cancelled) {
+          disposeTextures(model)
+          disposeObject3D(model)
+          resolve(null)
+          return
+        }
         const clip = pickRunClip(anims) ?? anims[0] ?? (await loadClip(def.runAnimUrl ?? KENNEY_RUN_FBX))
+        if (cancelled) {
+          disposeTextures(model)
+          disposeObject3D(model)
+          resolve(null)
+          return
+        }
         const packed = { model, clip }
         charTemplates.set(id, packed)
         resolve(packed)
@@ -408,29 +439,32 @@ export function createLevel8People(parent, opts = {}) {
     }
   }
 
-  void dressWalkers()
-  void preloadTaxi()
-  whenTaxiReady(() => {
-    if (cancelled) return
-    const template = getTaxiTemplate()
-    if (!template) return
-    for (const taxi of taxis) swapTaxi(taxi.mesh, cloneTaxiInstance(template))
-    for (const taxi of moving) swapTaxi(taxi.mesh, cloneTaxiInstance(template))
-  })
-
-  for (const car of parked) {
-    if (car.id && car.source === 'hazard') {
-      void loadLevel2HazardCarTemplate(car.id).then((template) => {
-        if (cancelled || !template) return
-        swapCar(car.mesh, cloneObstacleInstance(template))
-      })
-      continue
-    }
-    void loadLevel2CarTemplate(car.id).then(() => {
+  // Touch devices keep the lightweight proxies instead of decoding every character and vehicle model.
+  if (!IS_COARSE_POINTER) {
+    void dressWalkers()
+    void preloadTaxi()
+    whenTaxiReady(() => {
       if (cancelled) return
-      const inst = createLevel2CarInstance(car.id)
-      if (inst) swapCar(car.mesh, inst)
+      const template = getTaxiTemplate()
+      if (!template) return
+      for (const taxi of taxis) swapTaxi(taxi.mesh, cloneTaxiInstance(template))
+      for (const taxi of moving) swapTaxi(taxi.mesh, cloneTaxiInstance(template))
     })
+
+    for (const car of parked) {
+      if (car.id && car.source === 'hazard') {
+        void loadLevel2HazardCarTemplate(car.id).then((template) => {
+          if (cancelled || !template) return
+          swapCar(car.mesh, cloneObstacleInstance(template))
+        })
+        continue
+      }
+      void loadLevel2CarTemplate(car.id).then(() => {
+        if (cancelled) return
+        const inst = createLevel2CarInstance(car.id)
+        if (inst) swapCar(car.mesh, inst)
+      })
+    }
   }
 
   const stepPath = (item, dt) => {
@@ -513,7 +547,11 @@ export function createLevel8People(parent, opts = {}) {
     dispose() {
       cancelled = true
       parent.remove(group)
+      const models = [...charTemplates.values()].map(({ model }) => model)
+      disposeTextures(models)
+      models.forEach((model) => disposeObject3D(model))
       disposeObject3D(group)
+      draco.dispose()
     },
   }
 }

@@ -10,7 +10,8 @@ import {
   ensureBuildingsLoaded,
 } from '../BuildingFactory.js'
 import { LEVEL8_ANCHORS, LEVEL8_SHELL_SPOTS, LEVEL8_ENGEN_SPOTS, LEVEL8_KFC_SPOTS } from './level8City.js'
-import { disposeObject3D } from './threeDispose.js'
+import { disposeObject3D, disposeTextures } from './threeDispose.js'
+import { IS_COARSE_POINTER } from './deviceProfile.js'
 
 const OPTIONAL_DIR = '/Level8Assets'
 const SHELL_URL = `${OPTIONAL_DIR}/shell3D.glb`
@@ -51,12 +52,15 @@ const OPTIONAL_LANDMARKS = [
   { file: 'Home.glb', x: LEVEL8_ANCHORS.home.x, z: LEVEL8_ANCHORS.home.z, ry: 0 },
 ]
 
+// Only request optional files that are actually packaged; missing models use procedural fallbacks.
+const AVAILABLE_OPTIONAL_ASSETS = new Set()
+
 function makeLoader() {
   const loader = new GLTFLoader()
   const draco = new DRACOLoader()
   draco.setDecoderPath(DRACO_DECODER_PATH)
   loader.setDRACOLoader(draco)
-  return loader
+  return { loader, draco }
 }
 
 function groundAndScale(root, maxAxis = 8) {
@@ -274,16 +278,24 @@ function placeBrandLots(group, colliders, spots, makeKit, namePrefix) {
   })
 }
 
-function dressLots(loader, url, holders, cancelled, label) {
+function dressLots(loader, url, holders, cancelled, label, textureRoots) {
   void tryLoad(loader, url).then((scene) => {
-    if (!scene || cancelled()) return
+    if (!scene) return
+    if (cancelled()) {
+      disposeTextures(scene)
+      disposeObject3D(scene)
+      return
+    }
     let template
     try {
       template = prepareShellStation(scene)
     } catch (err) {
       if (import.meta.env.DEV) console.warn(`[Level8] Failed to prepare ${label}`, err)
+      disposeTextures(scene)
+      disposeObject3D(scene)
       return
     }
+    textureRoots.push(template)
     for (let i = 0; i < holders.length; i++) {
       if (cancelled()) return
       holders[i].add(i === 0 ? template : template.clone(true))
@@ -313,7 +325,8 @@ export function createLevel8Decor(parent, colliders) {
   const group = new THREE.Group()
   group.name = 'level8-decor'
   parent.add(group)
-  const loader = makeLoader()
+  const { loader, draco } = makeLoader()
+  const textureRoots = []
   let cancelled = false
 
   const placeShop = (spot) => {
@@ -335,14 +348,21 @@ export function createLevel8Decor(parent, colliders) {
   const placeOptional = async (list, maxAxis) => {
     for (const spot of list) {
       if (cancelled) return
+      if (!AVAILABLE_OPTIONAL_ASSETS.has(spot.file)) continue
       const scene = await tryLoad(loader, `${OPTIONAL_DIR}/${spot.file}`)
-      if (!scene || cancelled) continue
+      if (!scene) continue
+      if (cancelled) {
+        disposeTextures(scene)
+        disposeObject3D(scene)
+        continue
+      }
       const root = groundAndScale(scene, maxAxis)
       const holder = new THREE.Group()
       holder.add(root)
       holder.position.set(spot.x, 0, spot.z)
       holder.rotation.y = spot.ry ?? 0
       group.add(holder)
+      textureRoots.push(root)
       const box = new THREE.Box3().setFromObject(holder)
       const size = box.getSize(new THREE.Vector3())
       colliders.push({
@@ -363,17 +383,23 @@ export function createLevel8Decor(parent, colliders) {
   const shellHolders = placeBrandLots(group, colliders, LEVEL8_SHELL_SPOTS, makeShellGarage, 'shell')
   const engenHolders = placeBrandLots(group, colliders, LEVEL8_ENGEN_SPOTS, makeEngenGarage, 'engen')
   const kfcHolders = placeBrandLots(group, colliders, LEVEL8_KFC_SPOTS, makeKfcStore, 'kfc')
+  textureRoots.push(...shellHolders, ...engenHolders, ...kfcHolders)
   const isCancelled = () => cancelled
-  dressLots(loader, SHELL_URL, shellHolders, isCancelled, 'shell3D.glb')
-  dressLots(loader, ENGEN_URL, engenHolders, isCancelled, 'engen3D.glb')
-  dressLots(loader, KFC_URL, kfcHolders, isCancelled, 'KFC3D.glb')
+  // Keep the procedural storefronts on touch devices; model dressing is desktop-only.
+  if (!IS_COARSE_POINTER) {
+    dressLots(loader, SHELL_URL, shellHolders, isCancelled, 'shell3D.glb', textureRoots)
+    dressLots(loader, ENGEN_URL, engenHolders, isCancelled, 'engen3D.glb', textureRoots)
+    dressLots(loader, KFC_URL, kfcHolders, isCancelled, 'KFC3D.glb', textureRoots)
+  }
 
   return {
     group,
     dispose() {
       cancelled = true
       parent.remove(group)
+      disposeTextures(textureRoots)
       disposeObject3D(group)
+      draco.dispose()
     },
   }
 }

@@ -1,6 +1,7 @@
 # Level 8 drop-in 3D models
 
-Put GLB files here. Vite serves this folder at `/Level8Assets/`. The level keeps procedural houses if a file is missing.
+Put GLB files here. Vite serves this folder at `/Level8Assets/`. The level keeps procedural scenery if an optional file is missing.
+To avoid failed requests for files that are not packaged, add available optional model filenames to `AVAILABLE_OPTIONAL_ASSETS` in `src/game/level8Decor.js`.
 
 ## Houses (optional)
 

@@ -168,11 +168,8 @@ export function useRoadSceneEngine({
       antialias: !LOW_SPEC_RENDERING,
       powerPreference: 'high-performance',
     })
-    renderer.setPixelRatio(
-      LOW_SPEC_RENDERING
-        ? Math.min(window.devicePixelRatio, 1)
-        : Math.min(window.devicePixelRatio, 1.25)
-    )
+    const maxPixelRatio = IS_COARSE_POINTER ? 0.75 : LOW_SPEC_RENDERING ? 1 : 1.25
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio))
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     // Open-world levels share this renderer. Phones skip the shadow pass.
@@ -378,115 +375,70 @@ export function useRoadSceneEngine({
     let collectibleCount = 0
     let crashInvulnUntil = 0
 
-    const level3 = createLevel3Session({
-      scene,
-      camera,
-      renderer,
-      container,
-      setHud,
-      clearPausedRef,
-      highScoreRef,
-      recordBaselineRef,
-      newRecordToastShownRef,
-      setNewRecordToast,
-      currentLevelRef,
-      gameState: game,
-      creditWalletRef,
-      autoForwardRef,
-    })
-
-    const level4 = createLevel4Session({
-      scene,
-      camera,
-      renderer,
-      container,
-      setHud,
-      clearPausedRef,
-      highScoreRef,
-      recordBaselineRef,
-      newRecordToastShownRef,
-      setNewRecordToast,
-      currentLevelRef,
-      gameState: game,
-      creditWalletRef,
-      autoForwardRef,
-    })
-    const level5 = createLevel5Session({
-      scene,
-      camera,
-      renderer,
-      container,
-      setHud,
-      clearPausedRef,
-      highScoreRef,
-      recordBaselineRef,
-      newRecordToastShownRef,
-      setNewRecordToast,
-      currentLevelRef,
-      gameState: game,
-      creditWalletRef,
-      autoForwardRef,
-    })
-    const level6 = createLevel6Session({
-      scene,
-      camera,
-      renderer,
-      container,
-      setHud,
-      clearPausedRef,
-      highScoreRef,
-      recordBaselineRef,
-      newRecordToastShownRef,
-      setNewRecordToast,
-      currentLevelRef,
-      gameState: game,
-      creditWalletRef,
-      autoForwardRef,
-      playerRoot: openWorldPlayer,
-    })
-    const level8 = createLevel8Session({
-      scene,
-      camera,
-      renderer,
-      container,
-      setHud,
-      clearPausedRef,
-      highScoreRef,
-      recordBaselineRef,
-      newRecordToastShownRef,
-      setNewRecordToast,
-      currentLevelRef,
-      gameState: game,
-      creditWalletRef,
-      autoForwardRef,
-      playerRoot: openWorldPlayer,
-    })
-    if (playValveHintRef) {
-      playValveHintRef.current = () => level4.playValveHint()
+    const openWorldSessions = new Map()
+    const createOpenWorldSession = (id) => {
+      const deps = {
+        scene,
+        camera,
+        renderer,
+        container,
+        setHud,
+        clearPausedRef,
+        highScoreRef,
+        recordBaselineRef,
+        newRecordToastShownRef,
+        setNewRecordToast,
+        currentLevelRef,
+        gameState: game,
+        creditWalletRef,
+        autoForwardRef,
+      }
+      if (id === 3) return createLevel3Session(deps)
+      if (id === 4) return createLevel4Session(deps)
+      if (id === 5) return createLevel5Session(deps)
+      if (id === 6) return createLevel6Session({ ...deps, playerRoot: openWorldPlayer })
+      if (id === 8) return createLevel8Session({ ...deps, playerRoot: openWorldPlayer })
+      throw new Error(`Unsupported open-world level: ${id}`)
     }
-    if (level8FailActionsRef) {
-      level8FailActionsRef.current = {
-        continueFromCheckpoint: () => level8.continueFromCheckpoint(),
+
+    const openWorldSession = (id = currentLevelRef.current) => {
+      let session = openWorldSessions.get(id)
+      if (!session) {
+        session = createOpenWorldSession(id)
+        openWorldSessions.set(id, session)
+      }
+      return session
+    }
+
+    const disposeInactiveOpenWorldSessions = (keepId = null) => {
+      for (const [id, session] of openWorldSessions) {
+        if (id === keepId) continue
+        session.setActive(false)
+        session.dispose()
+        openWorldSessions.delete(id)
       }
     }
 
-    const openWorldSession = () => {
-      const id = currentLevelRef.current
-      if (id === 8) return level8
-      if (id === 6) return level6
-      if (id === 5) return level5
-      if (id === 4) return level4
-      return level3
+    if (playValveHintRef) {
+      playValveHintRef.current = () => openWorldSessions.get(4)?.playValveHint()
+    }
+    if (level8FailActionsRef) {
+      level8FailActionsRef.current = {
+        continueFromCheckpoint: () =>
+          openWorldSessions.get(8)?.continueFromCheckpoint(),
+      }
     }
 
     const syncWorldMode = (levelConfig) => {
       const isOpenWorld = levelConfig.playerKind === 'openworld'
       const levelId = currentLevelRef.current
-      level3.setActive(isOpenWorld && levelId === 3)
-      level4.setActive(isOpenWorld && levelId === 4)
-      level5.setActive(isOpenWorld && levelId === 5)
-      level6.setActive(isOpenWorld && levelId === 6)
-      level8.setActive(isOpenWorld && levelId === 8)
+      if (isOpenWorld) {
+        const session = openWorldSession(levelId)
+        disposeInactiveOpenWorldSessions(levelId)
+        session.setActive(true)
+      } else {
+        disposeInactiveOpenWorldSessions()
+      }
       staticRoad.visible = !isOpenWorld
       corridor.group.visible = !isOpenWorld
       sowetoTowers.visible = !isOpenWorld
@@ -524,11 +476,7 @@ export function useRoadSceneEngine({
     clearMovementKeysRef.current = () => {
       keys.forward = false
       keys.back = false
-      level3.clearKeys()
-      level4.clearKeys()
-      level5.clearKeys()
-      level6.clearKeys()
-      level8.clearKeys()
+      for (const session of openWorldSessions.values()) session.clearKeys()
     }
 
     const inPothole = (px, pz, py, vy) => {
@@ -760,11 +708,7 @@ export function useRoadSceneEngine({
       activeHazardKind = null
       keys.forward = false
       keys.back = false
-      level3.clearKeys()
-      level4.clearKeys()
-      level5.clearKeys()
-      level6.clearKeys()
-      level8.clearKeys()
+      for (const session of openWorldSessions.values()) session.clearKeys()
       game.over = false
       game.won = false
       state.playerZ = PLAYER_START_Z
@@ -1520,11 +1464,7 @@ export function useRoadSceneEngine({
           if (!p) {
             keys.forward = false
             keys.back = false
-            level3.clearKeys()
-            level4.clearKeys()
-            level5.clearKeys()
-            level6.clearKeys()
-            level8.clearKeys()
+            for (const session of openWorldSessions.values()) session.clearKeys()
             document.exitPointerLock?.()
           }
           const next = !p
@@ -2043,11 +1983,7 @@ export function useRoadSceneEngine({
     const onBlur = () => {
       keys.forward = false
       keys.back = false
-      level3.clearKeys()
-      level4.clearKeys()
-      level5.clearKeys()
-      level6.clearKeys()
-      level8.clearKeys()
+      for (const session of openWorldSessions.values()) session.clearKeys()
       for (const code of gamepadCodesDown) {
         window.dispatchEvent(new KeyboardEvent('keyup', { code, bubbles: true }))
       }
@@ -2087,11 +2023,7 @@ export function useRoadSceneEngine({
       container.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('touchstart', onTouchStart)
       document.removeEventListener('touchend', onTouchEnd)
-      level3.dispose()
-      level4.dispose()
-      level5.dispose()
-      level6.dispose()
-      level8.dispose()
+      disposeInactiveOpenWorldSessions()
       clearHazards()
       primaryHazardLoader?.cancel?.()
       disposeTaxiCache()

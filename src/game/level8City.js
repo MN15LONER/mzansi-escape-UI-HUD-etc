@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import { disposeObject3D } from './threeDispose.js'
 import { LEVEL8_WATER_ZONES } from './level8Water.js'
+import { IS_COARSE_POINTER } from './deviceProfile.js'
 
 export const LEVEL8_HALF_X = 80
 export const LEVEL8_HALF_Z = 110
@@ -492,10 +493,12 @@ export function buildSowetoStormCity(scene) {
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), porchMat)
     bulb.position.set(s.x + s.nx * 0.4, 2.5, s.z + s.nz * 0.4)
     group.add(bulb)
-    const light = new THREE.PointLight(0xffe082, 0.55, 11, 1.5)
-    light.position.set(s.x + s.nx * 1.1, 2.3, s.z + s.nz * 1.1)
-    group.add(light)
-    porchLights.push(light)
+    if (!IS_COARSE_POINTER) {
+      const light = new THREE.PointLight(0xffe082, 0.55, 11, 1.5)
+      light.position.set(s.x + s.nx * 1.1, 2.3, s.z + s.nz * 1.1)
+      group.add(light)
+      porchLights.push(light)
+    }
   }
 
   for (const g of GRAFFITI) {
@@ -665,7 +668,7 @@ export function buildSowetoStormCity(scene) {
   })
 
   const rainGeo = new THREE.BufferGeometry()
-  const rainCount = 900
+  const rainCount = IS_COARSE_POINTER ? 300 : 900
   const rainPos = new Float32Array(rainCount * 3)
   for (let i = 0; i < rainCount; i++) {
     rainPos[i * 3] = (Math.random() - 0.5) * 160
@@ -696,7 +699,8 @@ export function buildSowetoStormCity(scene) {
         side: THREE.DoubleSide,
       })
   )
-  const papers = Array.from({ length: 86 }, () => {
+  const paperCount = IS_COARSE_POINTER ? 24 : 86
+  const papers = Array.from({ length: paperCount }, () => {
     const mesh = new THREE.Mesh(paperGeo, paperMats[(Math.random() * paperMats.length) | 0])
     mesh.position.set((Math.random() - 0.5) * 78, 0.06 + Math.random() * 0.35, (Math.random() - 0.5) * 200)
     mesh.rotation.set(Math.random(), Math.random() * 6, Math.random())
