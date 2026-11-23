@@ -1,0 +1,8 @@
+{
+  "appId": "com.mzansiescape.game",
+  "appName": "Mzansi Escape",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

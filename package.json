@@ -11,11 +11,16 @@
     "release": "npm run build && node scripts/create-release.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:apk": "npm run android:sync && cd android && gradlew.bat assembleDebug",
     "electron:dev": "npm run build && electron .",
     "electron:build": "npm run build && electron-builder --win nsis",
     "optimize:buildings": "node scripts/optimize-glbs.mjs --ratio=0.12 --error=0.01 --tex=512 --join public BarberShop.glb BrickWall.glb CellPhoneRepairShop.glb GenericBuilding.glb InternetCafe.glb MuthiShop.glb SpazaShop.glb TuckShop.glb SowetoTower1.glb SowetoTower2.glb"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
     "cannon-es": "^0.20.0",
     "firebase": "^12.12.1",
     "react": "^19.2.5",
@@ -23,17 +28,18 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
     "@eslint/js": "^9.39.4",
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "electron": "^39.2.6",
-    "electron-builder": "^26.0.12",
     "globals": "^17.5.0",
     "sharp": "^0.34.5",
     "vite": "^8.0.9"
@@ -54,7 +60,10 @@
       }
     ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "nsis": {
       "oneClick": false,
