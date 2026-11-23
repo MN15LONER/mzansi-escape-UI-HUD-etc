@@ -1,11 +1,11 @@
-// level2CarCache.js — Cached Level 2 player car GLBs (shared Draco decoder, no dispose-on-switch).
+// level2CarCache.js — Cached Level 2 player car GLBs (shared Draco decoder).
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { LEVEL2_PLAYER_CARS } from './level2CarAssets.js'
 import { clonePlayerCarInstance, preparePlayerCarModel } from './modelPrep.js'
-import { disposeObject3D } from './threeDispose.js'
 import { DRACO_DECODER_PATH } from './dracoPath.js'
+import { disposeObject3D, disposeTextures } from './threeDispose.js'
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
@@ -63,21 +63,6 @@ export function loadLevel2CarTemplate(carId) {
   return promise
 }
 
-const DEFAULT_LEVEL2_CAR_ID = 'polo'
-
-/**
- * Level 2 start only. Loads the default Polo and the car the player has
- * selected. Other cars load through preloadLevel2Car when chosen in Options.
- * @param {string} [selectedCarId]
- */
-export function preloadLevel2CarsForStart(selectedCarId) {
-  const ids = new Set([DEFAULT_LEVEL2_CAR_ID])
-  if (selectedCarId) ids.add(selectedCarId)
-  for (const id of ids) {
-    loadLevel2CarTemplate(id)
-  }
-}
-
 /** @param {string} carId */
 export function preloadLevel2Car(carId) {
   return loadLevel2CarTemplate(carId)
@@ -119,6 +104,7 @@ export function whenLevel2CarReady(carId, onReady) {
 
 export function disposeLevel2CarCache() {
   for (const template of templates.values()) {
+    disposeTextures(template)
     disposeObject3D(template)
   }
   templates.clear()

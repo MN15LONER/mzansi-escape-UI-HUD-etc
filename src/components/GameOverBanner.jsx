@@ -6,6 +6,7 @@ export function GameOverBanner({
   coins,
   scoreLabel = 'Dodged',
   collectibleLabel = 'Coins',
+  onRestart,
 }) {
   const isLevel3 = level === 3
   const isLevel4 = level === 4
@@ -21,32 +22,40 @@ export function GameOverBanner({
         </>
       ) : isLevel6 ? (
         <>
-          You were found. The Cape Flats took you. Press R to try again. {collectibleLabel}:{' '}
+          You were found. The Cape Flats took you. Press R or tap Restart to try again.{' '}
+          {collectibleLabel}:{' '}
           {coins}
         </>
       ) : isLevel3 ? (
         <>
-          The amaphara got you! Press R to try again. {collectibleLabel}: {coins}
+          The amaphara got you! Press R or tap Restart to try again. {collectibleLabel}: {coins}
         </>
       ) : isLevel4 ? (
         <>
-          You dehydrated. Press R to try again. {collectibleLabel}: {coins}
+          You dehydrated. Press R or tap Restart to try again. {collectibleLabel}: {coins}
         </>
       ) : isLevel5 ? (
         <>
-          The looters got you! Press R to try again. {collectibleLabel}: {coins}
+          The looters got you! Press R or tap Restart to try again. {collectibleLabel}: {coins}
         </>
       ) : level === 2 ? (
         <>
-          Crashed! Need 3 Coke to keep going. Press R to try again. {scoreLabel}:{' '}
+          Crashed! Need 3 Coke to keep going. Press R or tap Restart to try again. {scoreLabel}:{' '}
           {score} · {collectibleLabel}: {coins}
         </>
       ) : (
         <>
-          Hit! Press R to try again. {scoreLabel}: {score} · {collectibleLabel}:{' '}
+          Hit! Press R or tap Restart to try again. {scoreLabel}: {score} · {collectibleLabel}:{' '}
           {coins}
         </>
       )}
+      <button
+        type="button"
+        className="start-menu__pixel-btn game-over-banner__restart"
+        onClick={onRestart}
+      >
+        Restart
+      </button>
     </div>
   )
 }

@@ -549,8 +549,9 @@ export function RoadScene() {
   }, [currentLevel])
 
   useEffect(() => {
+    if (currentLevel !== 2) return
     preloadLevel2CarRef.current?.(selectedLevel2CarId)
-  }, [selectedLevel2CarId])
+  }, [currentLevel, selectedLevel2CarId])
 
   useEffect(() => {
     applyPlayerForCurrentLevelRef.current?.()
@@ -767,6 +768,7 @@ export function RoadScene() {
           coins={hud.coins}
           scoreLabel={levelConfig.scoreLabel}
           collectibleLabel={levelConfig.collectibleLabel ?? 'Coins'}
+          onRestart={restartFromPause}
         />
       )}
       {hud.continueNotice && playStarted && !hud.gameOver && !hud.levelComplete && (

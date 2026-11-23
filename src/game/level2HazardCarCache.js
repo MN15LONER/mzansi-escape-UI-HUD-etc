@@ -7,8 +7,9 @@ import {
   LEVEL2_TRAFFIC_CAR_IDS,
 } from './level2ObstacleAssets.js'
 import { prepareHazardCarModel } from './modelPrep.js'
-import { disposeObject3D } from './threeDispose.js'
+import { disposeObject3D, disposeTextures } from './threeDispose.js'
 import { DRACO_DECODER_PATH } from './dracoPath.js'
+import { IS_COARSE_POINTER } from './deviceProfile.js'
 
 const gltfLoader = new GLTFLoader()
 const dracoLoader = new DRACOLoader()
@@ -21,6 +22,10 @@ const templates = new Map()
 const inflight = new Map()
 /** @type {Set<() => void>} */
 const readyListeners = new Set()
+// Keep Level 2's traffic texture footprint small on phones.
+const ACTIVE_TRAFFIC_CAR_IDS = IS_COARSE_POINTER
+  ? ['polo']
+  : LEVEL2_TRAFFIC_CAR_IDS
 
 function notifyReadyListeners() {
   if (templates.size === 0) return
@@ -81,13 +86,13 @@ export function loadLevel2HazardCarTemplate(carId) {
 /** Loads the small traffic set. Other hazard ids still load on demand. @returns {Promise<void>} */
 export function preloadAllLevel2HazardCars() {
   return Promise.all(
-    LEVEL2_TRAFFIC_CAR_IDS.map((id) => loadLevel2HazardCarTemplate(id))
+    ACTIVE_TRAFFIC_CAR_IDS.map((id) => loadLevel2HazardCarTemplate(id))
   ).then(() => {})
 }
 
 /** Templates eligible for oncoming traffic. @returns {import('three').Object3D[]} */
 export function getLevel2HazardCarTemplates() {
-  return LEVEL2_TRAFFIC_CAR_IDS.map((id) => templates.get(id)).filter(Boolean)
+  return ACTIVE_TRAFFIC_CAR_IDS.map((id) => templates.get(id)).filter(Boolean)
 }
 
 export function isLevel2HazardCarsReady() {
@@ -106,6 +111,7 @@ export function whenLevel2HazardCarsReady(onReady) {
 
 export function disposeLevel2HazardCarCache() {
   for (const template of templates.values()) {
+    disposeTextures(template)
     disposeObject3D(template)
   }
   templates.clear()

@@ -8,6 +8,7 @@ export const STORAGE_KEY_LEVEL2_CAR = 'mzansi-escape-level2-car'
 export const STORAGE_KEY_HIGHSCORE = 'mzansi-escape-highscore'
 export const STORAGE_KEY_MUSIC_MUTED = 'mzansi-escape-music-muted'
 export const STORAGE_KEY_AUTO_FORWARD = 'mzansi-escape-auto-forward'
+export const STORAGE_KEY_TOUCH_CONTROL_MODE = 'mzansi-escape-touch-control-mode'
 export const STORAGE_KEY_WALLET = 'mzansi-escape-wallet'
 export const STORAGE_KEY_UNLOCKS = 'mzansi-escape-unlocks'
 export const STORAGE_KEY_PROGRESS_UPDATED_AT = 'mzansi-escape-progress-updated-at'
@@ -90,6 +91,26 @@ export function readStoredMusicMuted() {
 export function readStoredAutoForward() {
   try {
     return localStorage.getItem(STORAGE_KEY_AUTO_FORWARD) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function readStoredTouchControlMode() {
+  try {
+    return localStorage.getItem(STORAGE_KEY_TOUCH_CONTROL_MODE) === 'stick'
+      ? 'stick'
+      : 'buttons'
+  } catch {
+    return 'buttons'
+  }
+}
+
+export function writeStoredTouchControlMode(mode) {
+  if (mode !== 'buttons' && mode !== 'stick') return false
+  try {
+    localStorage.setItem(STORAGE_KEY_TOUCH_CONTROL_MODE, mode)
+    return true
   } catch {
     return false
   }

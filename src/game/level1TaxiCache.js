@@ -1,10 +1,10 @@
-// level1TaxiCache.js — Cached Level 1 taxi GLB (shared Draco decoder, survives level switches).
+// level1TaxiCache.js — Cached Level 1 taxi GLB (shared Draco decoder).
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { TAXI_MODEL } from './characterAssets.js'
 import { prepareTaxiModel } from './modelPrep.js'
-import { disposeObject3D } from './threeDispose.js'
+import { disposeObject3D, disposeTextures } from './threeDispose.js'
 import { DRACO_DECODER_PATH } from './dracoPath.js'
 
 const gltfLoader = new GLTFLoader()
@@ -76,6 +76,7 @@ export function whenTaxiReady(onReady) {
 
 export function disposeTaxiCache() {
   if (template) {
+    disposeTextures(template)
     disposeObject3D(template)
     template = null
   }

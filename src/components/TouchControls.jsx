@@ -3,11 +3,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { isCoarsePointer } from '../game/deviceProfile.js'
+import {
+  readStoredTouchControlMode,
+  writeStoredTouchControlMode,
+} from '../game/storageKeys.js'
 import { pressTouchKey, releaseAllTouchKeys, releaseTouchKey } from '../game/touchInput.js'
 
 const TOUCH_LEVELS = new Set([1, 2, 6, 8])
 const STICK_RADIUS = 46
 const DEADZONE = 0.25
+const DIRECTION_ACTIONS = [
+  { code: 'KeyW', label: 'Forward', position: 'forward' },
+  { code: 'KeyA', label: 'Left', position: 'left' },
+  { code: 'KeyS', label: 'Back', position: 'back' },
+  { code: 'KeyD', label: 'Right', position: 'right' },
+]
 
 /**
  * Level 1 roll has no keyboard code. A downward swipe starts it, and the
@@ -133,7 +143,7 @@ function VirtualStick() {
   )
 }
 
-function TouchKeyButton({ code, label }) {
+function TouchKeyButton({ code, label, className = 'touch-controls__btn' }) {
   const heldRef = useRef(false)
 
   const release = () => {
@@ -147,7 +157,7 @@ function TouchKeyButton({ code, label }) {
   return (
     <button
       type="button"
-      className="touch-controls__btn"
+      className={className}
       aria-label={label}
       tabIndex={-1}
       onPointerDown={(event) => {
@@ -172,14 +182,65 @@ function TouchKeyButton({ code, label }) {
   )
 }
 
+function DirectionPad() {
+  return (
+    <div className="touch-controls__direction-pad" role="group" aria-label="Movement buttons">
+      {DIRECTION_ACTIONS.map((action) => (
+        <TouchKeyButton
+          key={action.code}
+          code={action.code}
+          label={action.label}
+          className={`touch-controls__btn touch-controls__direction-btn touch-controls__direction-btn--${action.position}`}
+        />
+      ))}
+    </div>
+  )
+}
+
 function TouchControlsLayout({ level }) {
   const actions = LEVEL_ACTIONS[level] ?? []
+  const canChooseMovementControls = level === 1 || level === 2
+  const [controlMode, setControlMode] = useState(readStoredTouchControlMode)
 
   useEffect(() => () => releaseAllTouchKeys(), [level])
 
+  const chooseControlMode = (nextMode) => {
+    releaseAllTouchKeys()
+    writeStoredTouchControlMode(nextMode)
+    setControlMode(nextMode)
+  }
+
   return (
     <div className="touch-controls" data-touch-controls>
-      <VirtualStick />
+      {canChooseMovementControls && (
+        <>
+          <div
+            className="touch-controls__mode-picker"
+            role="group"
+            aria-label="Choose movement controls"
+          >
+            <span className="touch-controls__mode-label">Move:</span>
+            <button
+              type="button"
+              className="touch-controls__mode-btn"
+              aria-pressed={controlMode === 'buttons'}
+              onClick={() => chooseControlMode('buttons')}
+            >
+              Buttons
+            </button>
+            <button
+              type="button"
+              className="touch-controls__mode-btn"
+              aria-pressed={controlMode === 'stick'}
+              onClick={() => chooseControlMode('stick')}
+            >
+              Stick
+            </button>
+          </div>
+          {controlMode === 'buttons' ? <DirectionPad /> : <VirtualStick />}
+        </>
+      )}
+      {!canChooseMovementControls && <VirtualStick />}
       {actions.length > 0 && (
         <div className="touch-controls__actions">
           {actions.map((action) => (

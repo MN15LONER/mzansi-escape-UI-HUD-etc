@@ -80,7 +80,7 @@ import {
 } from './coins.js'
 import { createCokeCollectibleAssetLoader } from './level2CokeCollectible.js'
 import { buildStaticRoad } from './staticRoad.js'
-import { disposeGeometries, disposeObject3D } from './threeDispose.js'
+import { disposeGeometries, disposeObject3D, disposeTextures } from './threeDispose.js'
 import { prepareOpenWorldPlayerModel, preparePlayerModel, prepareSowetoTowerModel } from './modelPrep.js'
 import { spawnTaxi } from './taxiSpawner.js'
 import { createCorridorManager } from './corridorManager.js'
@@ -94,7 +94,6 @@ import {
   createLevel2CarInstance,
   disposeLevel2CarCache,
   isLevel2CarCached,
-  preloadLevel2CarsForStart,
   preloadLevel2Car as preloadLevel2CarAsset,
   whenLevel2CarReady,
 } from './level2CarCache.js'
@@ -600,8 +599,14 @@ export function useRoadSceneEngine({
       applyLevelFog(levelConfig)
       syncWorldMode(levelConfig)
       if (activeHazardKind === levelConfig.hazardKind) return
-      if (levelConfig.hazardKind !== 'taxi') clearTaxis()
-      if (levelConfig.hazardKind !== 'obstacle') clearObstacles()
+      if (levelConfig.hazardKind !== 'taxi') {
+        clearTaxis()
+        if (levelConfig.id !== 8) disposeTaxiCache()
+      }
+      if (levelConfig.hazardKind !== 'obstacle') {
+        clearObstacles()
+        disposeLevel2HazardCarCache()
+      }
       if (levelConfig.hazardKind === 'obstacle') {
         primaryHazardLoader?.ensureLoaded?.()
         preloadAllLevel2HazardCars().then(() => scheduleObstacleSpawnsIfNeeded())
@@ -744,6 +749,14 @@ export function useRoadSceneEngine({
       syncWorldMode(levelConfig)
       potholeMeshes.group.visible = levelConfig.potholesEnabled
       syncHazardsForLevel(levelConfig)
+      if (levelConfig.playerKind !== 'car' && loadedPlayerKind === 'car') {
+        clearPlayerMixer()
+        clearPlayerVisual()
+        loadedPlayerKind = null
+        loadedPlayerCarGlb = false
+        loadedLevel2CarId = null
+        disposeLevel2CarCache()
+      }
       ensurePlayerForCurrentLevel()
     }
     threeResetGameRef.current = resetGame
@@ -1013,7 +1026,7 @@ export function useRoadSceneEngine({
       while (player.children.length) {
         const child = player.children[0]
         player.remove(child)
-        if (child.userData?.isPlayerCarGlb) continue
+        if (!child.userData?.isPlayerCarGlb) disposeTextures(child)
         disposeObject3D(child)
       }
     }
@@ -1376,8 +1389,6 @@ export function useRoadSceneEngine({
     applyPlayerForCurrentLevelRef.current = ensurePlayerForCurrentLevel
     preloadLevel2CarRef.current = preloadLevel2Car
     preloadTaxi() // Preload taxi for level 1
-    preloadLevel2CarsForStart(selectedLevel2CarIdRef.current)
-    preloadAllLevel2HazardCars()
     const cokeCollectibleAssets = createCokeCollectibleAssetLoader({
       onReady: () => {
         if (cancelled) return
